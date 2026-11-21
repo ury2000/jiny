@@ -1,6 +1,37 @@
 # Changelog
 
-Todos los cambios notables de **Jiny** (exclusivo para WoW Classic Forever `_forever_`, Interface `16001`) se documentan en este archivo.
+Todos los cambios notables de **Jiny** (exclusivo para WoW Classic Forever `_forever_`, Vanilla `1.15.x`, Interface `16001`) se documentan en este archivo.
+
+## [0.4.0] - 2026-11-21
+
+### Añadido (Fase 4 — Jiny Estable Forever, Temas, Auth Extendida y Salidas Modulares)
+- **Tema Oscuro `DarkGlass` e i18n sincronizado (`Jiny/Themes.lua`, `Jiny/UI.lua`, `Jiny/Core.lua`, `Jiny/Locales/*.lua`)**:
+  - Activación de `DarkGlass` junto a `ParchmentLight` con cambio dinámico desde el botón de cabecera y el comando `/jiny theme [light|dark]`.
+  - Contraste verificado WCAG 2.1 (`>= 4.5:1` en todos los pares), diseño responsive seguro en `MIN_WIDTH = 320` y pie actualizado a `v0.4 • Forever` en `ES`, `EN` e `IT`.
+  - Sincronización de las 51 claves de idioma en `enUS.lua`, `esES.lua`, `itIT.lua` y `tools/check_addon.py` (`Jiny.toc` versión `0.4.0`, `Interface: 16001`).
+- **Interfaz Unificada de Proveedores y Auth Extendida (`companion/providers.py`, `companion/oauth.py`)**:
+  - `LLMProvider`, `ProviderError` y fábrica `create_provider()` con alias normalizados (`gemini_api_key`, `gemini_oauth`, `ollama`).
+  - `GeminiOAuthProvider`: autenticación OAuth 2.0 PKCE (`S256`) en servidor local loopback, persistencia atómica en `companion/oauth_token.json` (ignorado por Git), refresco automático y transporte Bearer REST / Vertex AI.
+  - `OllamaProvider`: cliente local `/api/chat` y `/api/tags` basado en `urllib.request` con historial de sesión y manejo seguro de errores.
+- **Salidas Modulares Opcionales (`companion/tts.py`, `companion/overlay.py`)**:
+  - `TTSManager`: cola asíncrona no bloqueante, saneamiento de etiquetas `[JINY_MACRO]` y códigos de color WoW, con `NullTTSBackend`, `WindowsSAPIBackend` (aislado por entorno) y `Pyttsx3Backend` opcional.
+  - `OverlayManager`: ventana ligera opcional con temas `DarkGlass` / `ParchmentLight` (`TkOverlayBackend` con cierre seguro y respaldo automático `HeadlessOverlayBackend` ante entornos sin interfaz gráfica).
+- **Integración y Endurecimiento (`companion/config.py`, `companion/main.py`, `tools/test_v04.py`, `tools/test_integration.py`)**:
+  - Flags CLI combinados (`--provider`, `--oauth-login`, `--tts`/`--no-tts`, `--overlay`/`--no-overlay`, `--overlay-theme`) junto a los flags RAG de v0.3.
+  - Validación estricta de valores numéricos no finitos (`inf`, `-inf`, `nan`) y cadenas inválidas en configuración y variables de entorno.
+  - Pruebas offline combinadas (`tools/test_v04.py` y `tools/test_integration.py`).
+
+## [0.3.0] - 2026-11-21
+
+### Añadido (Fase 3 — Base de Conocimiento RAG Classic Era `1.15.x`)
+- **Esquema y Frontera Classic Forever (`companion/rag_schema.py`)**:
+  - Modelos normalizados para misiones, monstruos/PNJs, objetos y mazmorras de Classic Era `1.15.x` (`QuestRecord`, `MobRecord`, `ItemRecord`, `DungeonRecord`) con validación estricta de coordenadas (`0..100`), niveles (`<= 60` jugador), porcentajes de *drop* (`0..100%`) y rechazo explícito de términos o URLs fuera de Classic Era (`ClassicScopeError`).
+- **Semilla Verificada y Almacén SQLite FTS5 (`companion/data/classic_era_seed.json`, `companion/rag_store.py`)**:
+  - 52 registros verificados de Kalimdor y Reinos del Este con alias multilingües (`EN`/`ES`/`IT`), índice FTS5 (`unicode61 remove_diacritics 2`) ponderado con `BM25`, expansión bilingüe y guardia contra falsos positivos por palabras genéricas.
+- **Actualizador Opcional Wowhead Classic (`companion/wowhead_scraper.py`)**:
+  - Ingesta restringida a `https://www.wowhead.com/classic/...` con `fetcher` inyectable para pruebas offline.
+- **Fundamentación Anti-Alucinaciones y CLI (`companion/prompts.py`, `companion/main.py`, `tools/test_rag.py`)**:
+  - Bloque `[CLASSIC_ERA_CONTEXT]` (`NO_LOCAL_RAG_MATCH`, `NON_CLASSIC_SCOPE`) inyectado en el flujo de respuestas del Companion (`--ask` y `--watch`) y comandos `--rag-rebuild`, `--rag-stats`, `--rag-query`, `--no-rag`, `--rag-type` y `--rag-top-k`.
 
 ## [0.2.0] - 2026-11-21
 

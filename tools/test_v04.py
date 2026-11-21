@@ -983,6 +983,7 @@ class TestMainWiring(unittest.TestCase):
             deployed_companion_data_path=Path(tmp) / "Deployed" / "CompanionData.lua",
             wtf_account_dir=Path(tmp) / "WTF" / "Account",
             poll_interval_seconds=0.1,
+            rag_db_path=Path(tmp) / "rag.db",
             oauth_token_path=Path(tmp) / "oauth_token.json",
         )
         defaults.update(overrides)

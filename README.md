@@ -1,39 +1,49 @@
-# Jiny v0.2 — Asistente In-Game para WoW Classic Forever
+# Jiny v0.4 — Asistente In-Game para WoW Classic Forever
 
-**Jiny** es un addon asistente diseñado **exclusivamente** para **World of Warcraft Classic Forever** (`_forever_`, Interface `16001`). No ofrece ni contempla soporte para otras expansiones o clientes.
+**Jiny** es un addon asistente diseñado **exclusivamente** para **World of Warcraft Classic Forever** (`_forever_`, Vanilla `1.15.x`, `## Interface: 16001`). No ofrece ni contempla soporte para otras expansiones o clientes.
 
-> *Powered by Gemini & Local AI* — En **v0.2 (Fase 2)** Jiny conecta la interfaz Lua del juego con un **Companion local en Python** que lee `Logs\WoWChatLog.txt` en tiempo real con filtro estricto de privacidad, consulta la API oficial de **Gemini (`gemini-3.8-flash` vía `google-genai`)** y devuelve las respuestas a la ventana del addon mediante sincronización limpia (`Sincronizar` / `/jiny sync`), manteniendo además el modo demo local (`/jiny mode mock`).
+> *Powered by Gemini & Local AI* — **Jiny v0.4 (Estable Forever)** integra la interfaz Lua del juego (con temas **Pergamino Clásico** y **DarkGlass**) junto a un **Companion local en Python** equipado con **Base de Conocimiento RAG de Classic Era 1.15.x**, **proveedores unificados** (**Gemini `gemini-3.8-flash` API Key**, **OAuth 2.0 PKCE / Vertex AI** y **Ollama local**) y **salidas modulares opcionales** (**Audio TTS** y **Overlay ligero**).
 
 ---
 
 ## Los 7 Pilares Fundamentales
 
-1. **Identidad Intelectual**: Diseño visual propio de Azeroth con estética editorial y emblema estelar original (`JinyIcon`), alejado de interfaces genéricas.
-2. **Seguridad y Privacidad**: Sin automatización prohibida, sin lectura intrusiva ni envío de datos fuera del cliente en v0.1; todo ocurre de forma segura dentro de la API permitida de WoW.
-3. **Usabilidad & i18n**: Interfaz clara, legible y multilingüe de serie con soporte completo en **Español (`ES`)**, **Inglés (`EN`)** e **Italiano (`IT`)**, además de detección automática.
-4. **Simplicidad**: Flujo directo mediante una ventana compacta, historial de conversación limpio y comandos slash intuitivos sin configuraciones abrumadoras.
-5. **Rendimiento**: Arquitectura ligera en Lua pensada para no penalizar los FPS ni la memoria durante sesiones largas en Azeroth.
-6. **Interoperabilidad**: Estructura preparada desde la base (`SavedVariables`, motor de temas y locales desacoplados) para integrarse en v0.2 con el servicio Companion de Gemini y modelos locales.
-7. **Disponibilidad**: Enfoque estricto en el cliente Classic Forever (`_forever_`, `## Interface: 16001`) con instalación reproducible y herramientas locales de despliegue y generación de recursos.
+1. **Identidad Intelectual**: Diseño visual propio de Azeroth con estética editorial, doble tema (`ParchmentLight` / `DarkGlass`) y emblema estelar original (`JinyIcon`), sin plantillas ni texturas genéricas de Blizzard.
+2. **Seguridad y Privacidad**: 100% ToS-safe, sin inyección en memoria/DirectX, sin automatización prohibida; el transporte usa auto-susurro oculto y el Companion filtra estrictamente `Logs\WoWChatLog.txt` sin leer chats privados ni exponer credenciales en Lua.
+3. **Usabilidad & i18n**: Interfaz clara, legible y multilingüe con soporte sincronizado en **Español (`ES`)**, **Inglés (`EN`)** e **Italiano (`IT`)**, además de detección automática.
+4. **Simplicidad**: Ventana compacta con botones de acceso rápido (`Tema`, `Idioma`, `Sincronizar`, `Limpiar`, `Enviar`), bloques interactivos de macros/código y comandos slash intuitivos.
+5. **Rendimiento**: Arquitectura ligera en Lua y almacenamiento local SQLite FTS5 (`BM25`) en el Companion sin latencia añadida en el cliente de WoW.
+6. **Interoperabilidad**: Interfaz unificada de proveedores (`LLMProvider`) compatible con AI Studio API Key (`google-genai` `gemini-3.8-flash` Interactions API), OAuth 2.0 (`PKCE S256`) y modelos locales Ollama (`/api/chat`), más salidas opcionales desacopladas (`TTS` y `Overlay`).
+7. **Disponibilidad**: Enfoque estricto en **WoW Classic Forever** (`_forever_`, `## Interface: 16001`, Vanilla `1.15.x`) con validación automática, suite de pruebas offline y despliegue reproducible.
 
 ---
 
-## Características de la v0.2
+## Novedades de v0.3 y v0.4
 
-- **Puente File Reader en tiempo real (`Transport.lua` + `companion/`)**: Auto-susurro oculto por filtro (`[JINY_Q#...]`) con vaciado instantáneo de `Logs\WoWChatLog.txt` y lectura incremental en segundo plano sin leer chats privados.
-- **Conexión oficial Gemini (`google-genai`)**: Utiliza el modelo `gemini-3.8-flash` mediante `Interactions API` con memoria de conversación y *System Prompt* experto en Classic Forever (Vanilla 1.15.x).
-- **Tema visual**: `Pergamino Clásico (Light)` como tema inicial, construido sobre un motor de temas preparado para incorporar *Dark Mode* en versiones posteriores.
-- **Idiomas soportados**: `ES` (Español), `EN` (English), `IT` (Italiano) y modo `auto` según el idioma del cliente.
-- **Iconografía original**: Emblema de gema estelar de 4 puntas en formato vectorial (`Jiny/Assets/JinyIcon.svg`) y textura TGA de 64×64 píxeles (`Jiny/Assets/JinyIcon.tga`).
+### Fase 3 (`v0.3`) — Base de Conocimiento RAG Classic Era (`1.15.x`)
+- **Índice local SQLite FTS5 (`companion/rag_schema.py`, `companion/rag_store.py`)**: Almacena misiones, monstruos/PNJs, objetos y mazmorras de Classic Era `1.15.x` (`companion/data/classic_era_seed.json`) con coordenadas `(x, y)`, niveles mínimos/recomendados y porcentajes de *drop*.
+- **Frontera estricta Classic Forever**: Rechaza términos, zonas, niveles (`> 60` para jugador) o URLs fuera de Classic Era `1.15.x`.
+- **Fundamentación anti-alucinaciones (`companion/prompts.py`)**: Inyecta el bloque `[CLASSIC_ERA_CONTEXT]` en el proveedor activo (`API Key`, `OAuth 2.0` u `Ollama`) y abstiene cuando no existe coincidencia verificada (`NO_LOCAL_RAG_MATCH` / `NON_CLASSIC_SCOPE`).
+- **Actualizador opcional Wowhead Classic (`companion/wowhead_scraper.py`)**: Parseo restringido exclusivamente a `https://www.wowhead.com/classic/...`.
+
+### Fase 4 (`v0.4`) — Estable Forever, Temas, Auth Extendida y Salidas Modulares
+- **Modo Oscuro `DarkGlass` (`Jiny/Themes.lua`, `Jiny/UI.lua`, `Jiny/Core.lua`)**: Alternable en vivo con el botón de tema en la barra superior o mediante `/jiny theme [light|dark]`, con contraste verificado WCAG 2.1 y textos localizados en `ES`, `EN` e `IT`.
+- **Proveedores Unificados (`companion/providers.py`, `companion/oauth.py`)**:
+  - `gemini_api_key`: Google AI Studio (`google-genai` `gemini-3.8-flash` Interactions API).
+  - `gemini_oauth`: Flujo OAuth 2.0 PKCE (`S256`) con refresco automático en `companion/oauth_token.json` (ignorado por Git) y soporte Bearer REST o Vertex AI.
+  - `ollama`: Modelos locales vía `/api/chat` usando biblioteca estándar (`urllib.request`) sin dependencias externas adicionales.
+- **Audio TTS opcional (`companion/tts.py`)**: Cola asíncrona no bloqueante que limpia códigos de color/macros de WoW (`NullTTSBackend`, `WindowsSAPIBackend` o `Pyttsx3Backend` opcional).
+- **Overlay ligero opcional (`companion/overlay.py`)**: Ventana flotante desacoplada sincronizada con `DarkGlass` / `ParchmentLight` (`TkOverlayBackend` con respaldo automático `HeadlessOverlayBackend` en entornos sin pantalla).
 
 ---
 
-## Comandos Slash
+## Comandos Slash In-Game
 
 | Comando | Descripción |
 | :--- | :--- |
 | `/jiny` | Abre o cierra la ventana principal de Jiny. |
 | `/jiny <pregunta>` | Envía una consulta directa a Jiny. |
+| `/jiny theme [light\|dark]` | Alterna o selecciona entre `ParchmentLight` y `DarkGlass`. |
 | `/jiny sync` | Recarga la UI (`/reload`) para cargar las respuestas del Companion en la ventana Lua. |
 | `/jiny mode <companion\|mock>` | Cambia entre el modo real con Companion y el modo demo local. |
 | `/jiny help` | Muestra la lista de comandos disponibles en el chat. |
@@ -49,7 +59,7 @@
 
 ---
 
-## Instalación Manual
+## Instalación Manual del Addon
 
 Puedes instalar Jiny en tu cliente **WoW Classic Forever** (`_forever_`) de dos formas:
 
@@ -75,22 +85,45 @@ El script mostrará las rutas de origen y destino y solicitará confirmación an
 
 ---
 
-## Ejecutar el Companion (v0.2)
+## Ejecutar el Companion (`v0.4`)
 
-1. Instala la dependencia oficial de Google GenAI (Python 3.10+):
+1. Instala las dependencias en Python 3.10+:
    ```powershell
    py -m pip install -r jiny\requirements.txt
    ```
-2. Configura tu API Key de Google AI Studio mediante variable de entorno `GEMINI_API_KEY` o copiando `jiny\companion\config.example.json` a `jiny\companion\config.json` (archivo ignorado por Git).
-3. Comprueba el estado y las rutas:
+2. Configura tus preferencias copiando `jiny\companion\config.example.json` a `jiny\companion\config.json` (ignorado por Git) o usando variables de entorno:
+   - **AI Studio API Key**: `GEMINI_API_KEY` (proveedor `gemini_api_key`).
+   - **OAuth 2.0**: `JINY_PROVIDER=gemini_oauth`, `JINY_OAUTH_CLIENT_ID` (y opcionalmente `JINY_VERTEXAI=true`, `JINY_GCP_PROJECT`) ejecutando primero `py -m companion.main --oauth-login`.
+   - **Ollama Local**: `JINY_PROVIDER=ollama`, `JINY_OLLAMA_BASE_URL=http://127.0.0.1:11434`, `JINY_OLLAMA_MODEL=llama3.1:8b`.
+3. Comprueba estado, proveedor, RAG, TTS y Overlay:
    ```powershell
-   py jiny\companion\main.py --status
+   py -m companion.main --status
    ```
-4. Inicia el *listener* en tiempo real mientras juegas en WoW Classic Forever:
+4. Operaciones RAG locales (100% offline):
    ```powershell
-   py jiny\companion\main.py --watch
+   py -m companion.main --rag-stats
+   py -m companion.main --rag-rebuild
+   py -m companion.main --rag-query "Ironfoe" --rag-type item --rag-top-k 2
    ```
-5. En el juego, envía preguntas desde la ventana de Jiny (`/jiny`), lee la respuesta al instante en la consola del Companion o pulsa **Sincronizar** (`/jiny sync`) para verla dentro del pergamino Lua.
+5. Inicia el *listener* en tiempo real mientras juegas en WoW Classic Forever:
+   ```powershell
+   py -m companion.main --watch
+   py -m companion.main --watch --provider ollama --tts --overlay --overlay-theme DarkGlass
+   ```
+6. Consulta puntual desde CLI (con `--dry-run` opcional o `--no-rag` para desactivar RAG):
+   ```powershell
+   py -m companion.main --ask "¿Dónde cae Ironfoe?" --lang esES --dry-run
+   ```
+
+---
+
+## Validación y Pruebas Offline
+
+```powershell
+py .\tools\check_addon.py
+py .\tools\test_companion.py
+py -m unittest discover -s tools -p "test_*.py" -v
+```
 
 ---
 

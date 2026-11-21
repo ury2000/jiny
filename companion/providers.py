@@ -20,7 +20,7 @@ from .oauth import (
     OAuthTokenStore,
     default_http_transport,
 )
-from .prompts import build_system_instruction
+from .prompts import apply_rag_context, build_system_instruction
 
 DEFAULT_GEMINI_BASE_URL = "https://generativelanguage.googleapis.com"
 DEFAULT_API_REVISION = "2026-05-20"
@@ -63,11 +63,13 @@ def normalize_provider_name(name: Optional[str]) -> str:
     )
 
 
-def compose_prompt_input(question: str, context: str | None = None) -> str:
+def compose_prompt_input(question: str, context: str | None = None, locale: str = "esES") -> str:
     """Combine optional grounded context with user question cleanly."""
     if context is None or not context.strip():
         return question
     ctx = context.strip()
+    if "[CLASSIC_ERA_CONTEXT]" in ctx:
+        return apply_rag_context(question=question, context=ctx, locale=locale)
     if ctx.startswith("["):
         return f"{ctx}\n\n{question}"
     return f"[CONTEXT]\n{ctx}\n\n{question}"
@@ -194,7 +196,7 @@ class GeminiAPIKeyProvider(LLMProvider):
     def ask(self, question: str, locale: str = "esES", context: str | None = None) -> str:
         kwargs: dict[str, Any] = {
             "model": self.model,
-            "input": compose_prompt_input(question, context),
+            "input": compose_prompt_input(question, context, locale=locale),
             "system_instruction": build_system_instruction(locale),
         }
         if self.last_interaction_id:
@@ -304,7 +306,7 @@ class GeminiOAuthProvider(LLMProvider):
         client = self._get_vertex_client()
         kwargs: dict[str, Any] = {
             "model": self.model,
-            "input": compose_prompt_input(question, context),
+            "input": compose_prompt_input(question, context, locale=locale),
             "system_instruction": build_system_instruction(locale),
         }
         if self.last_interaction_id:
@@ -328,7 +330,7 @@ class GeminiOAuthProvider(LLMProvider):
         url = f"{self.base_url}/v1beta/interactions"
         body_dict: dict[str, Any] = {
             "model": self.model,
-            "input": compose_prompt_input(question, context),
+            "input": compose_prompt_input(question, context, locale=locale),
             "system_instruction": build_system_instruction(locale),
         }
         if self.last_interaction_id:
@@ -426,7 +428,7 @@ class OllamaProvider(LLMProvider):
         messages: list[dict[str, str]] = [
             {"role": "system", "content": build_system_instruction(locale)},
             *self._history,
-            {"role": "user", "content": compose_prompt_input(question, context)},
+            {"role": "user", "content": compose_prompt_input(question, context, locale=locale)},
         ]
         body_bytes = json.dumps(
             {"model": self.model, "messages": messages, "stream": False}
