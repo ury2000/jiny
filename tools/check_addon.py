@@ -12,9 +12,11 @@ EXPECTED_LOCALE_KEYS = {
     "TITLE",
     "STATUS_READY",
     "STATUS_MOCK",
+    "STATUS_WAITING",
     "INPUT_PLACEHOLDER",
     "BTN_SEND",
     "BTN_CLEAR",
+    "BTN_SYNC",
     "BTN_LANGUAGE",
     "LANG_auto",
     "LANG_enUS",
@@ -32,12 +34,27 @@ EXPECTED_LOCALE_KEYS = {
     "HELP_ASK",
     "HELP_LANG",
     "HELP_SCALE",
+    "HELP_SYNC",
+    "HELP_MODE",
     "HELP_RESET",
     "HELP_CLEAR",
     "SCALE_CHANGED",
     "SCALE_RESET",
+    "SENT_TO_COMPANION",
+    "SYNC_TIP",
+    "MODE_CHANGED",
     "FOOTER",
     "RESIZE_TIP",
+    "BTN_COPY_MACRO",
+    "BTN_CREATE_MACRO",
+    "BTN_COPY_CODE",
+    "MACRO_CREATED",
+    "MACRO_UPDATED",
+    "MACRO_ERR_COMBAT",
+    "MACRO_ERR_FULL",
+    "MACRO_ERR_CREATE",
+    "MACRO_DIALOG_TITLE",
+    "MACRO_DIALOG_HINT",
 }
 
 FORBIDDEN_LUA_PATTERNS = [
@@ -108,7 +125,7 @@ def check_locales() -> list[str]:
             errors.append(f"{code}.lua missing keys: {missing}")
         if extra:
             errors.append(f"{code}.lua extra keys: {extra}")
-        for fmt_key in ("MOCK_REPLY", "LANG_CHANGED", "SCALE_CHANGED"):
+        for fmt_key in ("MOCK_REPLY", "LANG_CHANGED", "SCALE_CHANGED", "MODE_CHANGED"):
             m = re.search(rf'^\s*{fmt_key}\s*=\s*"((?:[^"\\]|\\.)*)"', text, flags=re.MULTILINE)
             if not m or "%s" not in m.group(1):
                 errors.append(f"{code}.lua key {fmt_key} missing '%s' placeholder")
@@ -133,6 +150,8 @@ def check_lua_files() -> list[str]:
         if not re.match(r"^local\s+ADDON\s*,\s*ns\s*=\s*\.\.\.", first_line):
             errors.append(f"{rel}: first line must be 'local ADDON, ns = ...'")
         for pat in FORBIDDEN_LUA_PATTERNS:
+            if pat == r"\bSendChatMessage\b" and rel.as_posix() == "Transport.lua":
+                continue
             if re.search(pat, text):
                 errors.append(f"{rel}: matches forbidden pattern '{pat}'")
     return errors

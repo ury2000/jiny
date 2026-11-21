@@ -1,8 +1,8 @@
-# Jiny v0.1 — Asistente In-Game para WoW Classic Forever
+# Jiny v0.2 — Asistente In-Game para WoW Classic Forever
 
 **Jiny** es un addon asistente diseñado **exclusivamente** para **World of Warcraft Classic Forever** (`_forever_`, Interface `16001`). No ofrece ni contempla soporte para otras expansiones o clientes.
 
-> *Powered by Gemini & Local AI* — En **v0.1 (Fase 1)** Jiny funciona como interfaz visual in-game en **modo demo local** con respuestas simuladas y estado persistente. La conexión externa con el Companion de IA llegará en la versión **v0.2**.
+> *Powered by Gemini & Local AI* — En **v0.2 (Fase 2)** Jiny conecta la interfaz Lua del juego con un **Companion local en Python** que lee `Logs\WoWChatLog.txt` en tiempo real con filtro estricto de privacidad, consulta la API oficial de **Gemini (`gemini-3.8-flash` vía `google-genai`)** y devuelve las respuestas a la ventana del addon mediante sincronización limpia (`Sincronizar` / `/jiny sync`), manteniendo además el modo demo local (`/jiny mode mock`).
 
 ---
 
@@ -18,11 +18,12 @@
 
 ---
 
-## Características de la v0.1
+## Características de la v0.2
 
+- **Puente File Reader en tiempo real (`Transport.lua` + `companion/`)**: Auto-susurro oculto por filtro (`[JINY_Q#...]`) con vaciado instantáneo de `Logs\WoWChatLog.txt` y lectura incremental en segundo plano sin leer chats privados.
+- **Conexión oficial Gemini (`google-genai`)**: Utiliza el modelo `gemini-3.8-flash` mediante `Interactions API` con memoria de conversación y *System Prompt* experto en Classic Forever (Vanilla 1.15.x).
 - **Tema visual**: `Pergamino Clásico (Light)` como tema inicial, construido sobre un motor de temas preparado para incorporar *Dark Mode* en versiones posteriores.
 - **Idiomas soportados**: `ES` (Español), `EN` (English), `IT` (Italiano) y modo `auto` según el idioma del cliente.
-- **Modo demo local**: Permite probar la ventana del asistente, el historial y las interacciones básicas directamente dentro del juego sin requerir servicios externos activos.
 - **Iconografía original**: Emblema de gema estelar de 4 puntas en formato vectorial (`Jiny/Assets/JinyIcon.svg`) y textura TGA de 64×64 píxeles (`Jiny/Assets/JinyIcon.tga`).
 
 ---
@@ -32,6 +33,9 @@
 | Comando | Descripción |
 | :--- | :--- |
 | `/jiny` | Abre o cierra la ventana principal de Jiny. |
+| `/jiny <pregunta>` | Envía una consulta directa a Jiny. |
+| `/jiny sync` | Recarga la UI (`/reload`) para cargar las respuestas del Companion en la ventana Lua. |
+| `/jiny mode <companion\|mock>` | Cambia entre el modo real con Companion y el modo demo local. |
 | `/jiny help` | Muestra la lista de comandos disponibles en el chat. |
 | `/jiny lang <auto\|en\|es\|it>` | Cambia el idioma de la interfaz (`auto`, `en`, `es` o `it`). |
 | `/jiny scale <0.65-2.5\|reset>` | Ajusta o restablece la escala HiDPI de la ventana. |
@@ -68,6 +72,25 @@ El script mostrará las rutas de origen y destino y solicitará confirmación an
 1. Copia la carpeta `jiny\Jiny` completa.
 2. Pégala dentro de `_forever_\Interface\AddOns\Jiny` (de modo que `Jiny.toc` quede en `_forever_\Interface\AddOns\Jiny\Jiny.toc`).
 3. Inicia WoW Classic Forever o ejecuta `/reload` si ya estás dentro del juego.
+
+---
+
+## Ejecutar el Companion (v0.2)
+
+1. Instala la dependencia oficial de Google GenAI (Python 3.10+):
+   ```powershell
+   py -m pip install -r jiny\requirements.txt
+   ```
+2. Configura tu API Key de Google AI Studio mediante variable de entorno `GEMINI_API_KEY` o copiando `jiny\companion\config.example.json` a `jiny\companion\config.json` (archivo ignorado por Git).
+3. Comprueba el estado y las rutas:
+   ```powershell
+   py jiny\companion\main.py --status
+   ```
+4. Inicia el *listener* en tiempo real mientras juegas en WoW Classic Forever:
+   ```powershell
+   py jiny\companion\main.py --watch
+   ```
+5. En el juego, envía preguntas desde la ventana de Jiny (`/jiny`), lee la respuesta al instante en la consola del Companion o pulsa **Sincronizar** (`/jiny sync`) para verla dentro del pergamino Lua.
 
 ---
 

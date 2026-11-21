@@ -201,6 +201,342 @@ local function CreateHandButton(parent, fontObject, onClick)
     return btn
 end
 
+-- Snippet storage and macro management
+UI.macroSnippets = UI.macroSnippets or {}
+local snippetSeq = 0
+local function GenSnippetId()
+    snippetSeq = snippetSeq + 1
+    return tostring(time()) .. "_" .. tostring(snippetSeq)
+end
+
+local function FormatMacroBlock(name, body, sid)
+    local out = {}
+    local macroName = (name and name ~= "") and name or "Macro"
+    table.insert(out, "|cffb8860b+--- [ |r|cffffd100" .. macroName .. "|r |cffb8860b] --------------------------------|r")
+    table.insert(out, "|cffb8860b| |r|cff3b82f6|Hjinycopy:" .. sid .. "|h[" .. ns.L.BTN_COPY_MACRO .. "]|h|r   |cff10b981|Hjinymacro:" .. sid .. "|h[" .. ns.L.BTN_CREATE_MACRO .. "]|h|r")
+    table.insert(out, "|cffb8860b+--------------------------------------------|r")
+    for line in body:gmatch("([^\r\n]+)") do
+        local trimmed = Trim(line)
+        if trimmed ~= "" then
+            table.insert(out, "|cffb8860b| |r |cffe6cc80" .. trimmed .. "|r")
+        end
+    end
+    table.insert(out, "|cffb8860b+--------------------------------------------|r")
+    return table.concat(out, "\n")
+end
+
+local function FormatCodeBlock(lang, body, sid, isMacro)
+    local out = {}
+    local blockTitle = (lang and lang ~= "") and lang:upper() or (isMacro and "MACRO" or "CODE")
+    table.insert(out, "|cff718096+--- [ |r|cffa0aec0" .. blockTitle .. "|r |cff718096] --------------------------------|r")
+    if isMacro then
+        table.insert(out, "|cff718096| |r|cff3b82f6|Hjinycopy:" .. sid .. "|h[" .. ns.L.BTN_COPY_MACRO .. "]|h|r   |cff10b981|Hjinymacro:" .. sid .. "|h[" .. ns.L.BTN_CREATE_MACRO .. "]|h|r")
+    else
+        table.insert(out, "|cff718096| |r|cff3b82f6|Hjinycopy:" .. sid .. "|h[" .. ns.L.BTN_COPY_CODE .. "]|h|r")
+    end
+    table.insert(out, "|cff718096+--------------------------------------------|r")
+    for line in body:gmatch("([^\r\n]+)") do
+        local trimmed = Trim(line)
+        if trimmed ~= "" then
+            table.insert(out, "|cff718096| |r |cff81e6d9" .. trimmed .. "|r")
+        end
+    end
+    table.insert(out, "|cff718096+--------------------------------------------|r")
+    return table.concat(out, "\n")
+end
+
+local function LooksLikeMacro(str)
+    if not str then return false end
+    if str:find("#showtooltip") or str:find("/cast") or str:find("/use") or str:find("/cancelaura") or str:find("/target") or str:find("/petattack") then
+        return true
+    end
+    return false
+end
+
+local function ProcessMessageContent(text)
+    if type(text) ~= "string" or text == "" then
+        return text
+    end
+
+    local processed = text
+    local hasMatches = false
+
+    -- 1. Explicit [JINY_MACRO name="..."]...[/JINY_MACRO]
+    processed = processed:gsub("%[JINY_MACRO%s*name=\"([^\"]*)\"%]%s*(.-)%s*%[/JINY_MACRO%]", function(name, body)
+        hasMatches = true
+        local cleanBody = Trim(body)
+        local sid = GenSnippetId()
+        UI.macroSnippets[sid] = {
+            name = (name ~= "" and name) or "Macro",
+            body = cleanBody,
+            isMacro = true,
+        }
+        return "\n" .. FormatMacroBlock(name, cleanBody, sid) .. "\n"
+    end)
+
+    -- [JINY_MACRO]...[/JINY_MACRO]
+    processed = processed:gsub("%[JINY_MACRO%]%s*(.-)%s*%[/JINY_MACRO%]", function(body)
+        hasMatches = true
+        local cleanBody = Trim(body)
+        local sid = GenSnippetId()
+        UI.macroSnippets[sid] = {
+            name = "Macro",
+            body = cleanBody,
+            isMacro = true,
+        }
+        return "\n" .. FormatMacroBlock("Macro", cleanBody, sid) .. "\n"
+    end)
+
+    -- 2. Markdown code blocks ```lang ... ```
+    processed = processed:gsub("```([a-zA-Z0-9_-]*)\n*(.-)\n*```", function(lang, body)
+        hasMatches = true
+        local cleanBody = Trim(body)
+        local isMacro = LooksLikeMacro(cleanBody)
+        local sid = GenSnippetId()
+        UI.macroSnippets[sid] = {
+            name = isMacro and "Macro" or "Code",
+            body = cleanBody,
+            isMacro = isMacro,
+        }
+        if isMacro then
+            return "\n" .. FormatMacroBlock("Macro", cleanBody, sid) .. "\n"
+        else
+            return "\n" .. FormatCodeBlock(lang, cleanBody, sid, false) .. "\n"
+        end
+    end)
+
+    -- 3. Fallback: raw macro lines (#showtooltip, /cast, etc.)
+    if not hasMatches and LooksLikeMacro(processed) then
+        local lines = {}
+        for line in (processed .. "\n"):gmatch("(.-)\r?\n") do
+            table.insert(lines, line)
+        end
+        local macroBlock = {}
+        local inMacro = false
+        local finalLines = {}
+        for _, l in ipairs(lines) do
+            local trimmed = Trim(l)
+            if trimmed:find("^#showtooltip") or trimmed:find("^/[a-zA-Z]") then
+                inMacro = true
+                table.insert(macroBlock, trimmed)
+            else
+                if inMacro and #macroBlock > 0 then
+                    local body = table.concat(macroBlock, "\n")
+                    local sid = GenSnippetId()
+                    UI.macroSnippets[sid] = {
+                        name = "Macro",
+                        body = body,
+                        isMacro = true,
+                    }
+                    table.insert(finalLines, FormatMacroBlock("Macro", body, sid))
+                    macroBlock = {}
+                    inMacro = false
+                end
+                table.insert(finalLines, l)
+            end
+        end
+        if inMacro and #macroBlock > 0 then
+            local body = table.concat(macroBlock, "\n")
+            local sid = GenSnippetId()
+            UI.macroSnippets[sid] = {
+                name = "Macro",
+                body = body,
+                isMacro = true,
+            }
+            table.insert(finalLines, FormatMacroBlock("Macro", body, sid))
+        end
+        processed = table.concat(finalLines, "\n")
+    end
+
+    return processed
+end
+
+local COPY_DIALOG_NAME = "JinyCopyDialog"
+
+function UI:GetOrCreateCopyDialog()
+    if self.copyDialog then
+        return self.copyDialog
+    end
+
+    local dialog = CreateFrame("Frame", COPY_DIALOG_NAME, UIParent, "BackdropTemplate")
+    dialog:SetSize(400, 240)
+    dialog:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
+    dialog:SetFrameStrata("FULLSCREEN_DIALOG")
+    dialog:EnableMouse(true)
+    dialog:SetMovable(true)
+    dialog:SetClampedToScreen(true)
+    dialog:RegisterForDrag("LeftButton")
+    dialog:SetScript("OnDragStart", function(f) f:StartMoving() end)
+    dialog:SetScript("OnDragStop", function(f) f:StopMovingOrSizing() end)
+
+    RegisterSpecialFrame(COPY_DIALOG_NAME)
+
+    local t = GetTheme()
+    local edge = t.edgeSize or 2
+    ApplyBackdrop(dialog, t.bg or FALLBACK_THEME.bg, t.border or FALLBACK_THEME.border, edge)
+
+    -- Header
+    local header = CreateFrame("Frame", nil, dialog, "BackdropTemplate")
+    header:SetPoint("TOPLEFT", dialog, "TOPLEFT", 6, -6)
+    header:SetPoint("TOPRIGHT", dialog, "TOPRIGHT", -6, -6)
+    header:SetHeight(26)
+    header:EnableMouse(true)
+    header:RegisterForDrag("LeftButton")
+    header:SetScript("OnDragStart", function() dialog:StartMoving() end)
+    header:SetScript("OnDragStop", function() dialog:StopMovingOrSizing() end)
+    ApplyBackdrop(header, t.headerBg or FALLBACK_THEME.headerBg, t.border or FALLBACK_THEME.border, edge)
+    dialog.header = header
+
+    local title = header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("LEFT", header, "LEFT", 8, 0)
+    title:SetText(ns.L.MACRO_DIALOG_TITLE)
+    title:SetTextColor(UnpackRGB(t.title or FALLBACK_THEME.title, 0.29, 0.15, 0.03))
+    dialog.title = title
+
+    local closeBtn = CreateHandButton(header, "GameFontNormal", function()
+        dialog:Hide()
+    end)
+    closeBtn:SetSize(20, 20)
+    closeBtn:SetPoint("RIGHT", header, "RIGHT", -4, 0)
+    closeBtn.label:SetText("x")
+    ApplyBackdrop(closeBtn, t.buttonBg or FALLBACK_THEME.buttonBg, t.buttonBorder or FALLBACK_THEME.buttonBorder, edge)
+    closeBtn.label:SetTextColor(UnpackRGB(t.buttonText or FALLBACK_THEME.buttonText, 1, 0.96, 0.82))
+    dialog.closeBtn = closeBtn
+
+    -- ScrollFrame + EditBox container
+    local editContainer = CreateFrame("Frame", nil, dialog, "BackdropTemplate")
+    editContainer:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -6)
+    editContainer:SetPoint("BOTTOMRIGHT", dialog, "BOTTOMRIGHT", -6, 38)
+    ApplyBackdrop(editContainer, t.inputBg or FALLBACK_THEME.inputBg, t.inputBorder or FALLBACK_THEME.inputBorder, edge)
+    dialog.editContainer = editContainer
+
+    local scrollFrame = CreateFrame("ScrollFrame", nil, editContainer)
+    scrollFrame:SetPoint("TOPLEFT", editContainer, "TOPLEFT", 6, -6)
+    scrollFrame:SetPoint("BOTTOMRIGHT", editContainer, "BOTTOMRIGHT", -6, 6)
+    scrollFrame:EnableMouseWheel(true)
+    scrollFrame:SetScript("OnMouseWheel", function(sf, delta)
+        local current = sf:GetVerticalScroll()
+        local maxRange = sf:GetVerticalScrollRange()
+        local newScroll = math.max(0, math.min(maxRange, current - (delta * 20)))
+        sf:SetVerticalScroll(newScroll)
+    end)
+    dialog.scrollFrame = scrollFrame
+
+    local _, inputFont = GetJinyFonts()
+    local editBox = CreateFrame("EditBox", nil, scrollFrame)
+    editBox:SetMultiLine(true)
+    editBox:SetAutoFocus(false)
+    editBox:SetFontObject(inputFont or "GameFontNormal")
+    editBox:SetWidth(370)
+    editBox:SetTextColor(UnpackRGB(t.inputText or FALLBACK_THEME.inputText, 0.17, 0.09, 0.03))
+    editBox:SetScript("OnEscapePressed", function()
+        dialog:Hide()
+    end)
+    scrollFrame:SetScrollChild(editBox)
+    dialog.editBox = editBox
+
+    -- Footer hint
+    local hint = dialog:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    hint:SetPoint("BOTTOMLEFT", dialog, "BOTTOMLEFT", 10, 10)
+    hint:SetText(ns.L.MACRO_DIALOG_HINT)
+    hint:SetTextColor(UnpackRGB(t.muted or FALLBACK_THEME.muted, 0.42, 0.27, 0.14))
+    dialog.hint = hint
+
+    -- Create Macro button
+    local createBtn = CreateHandButton(dialog, "GameFontNormalSmall", function()
+        if dialog.currentSnippetId then
+            UI:CreateInGameMacro(dialog.currentSnippetId)
+            dialog:Hide()
+        end
+    end)
+    createBtn:SetHeight(22)
+    createBtn:SetPoint("BOTTOMRIGHT", dialog, "BOTTOMRIGHT", -8, 8)
+    createBtn.label:SetText(ns.L.BTN_CREATE_MACRO)
+    createBtn:SetWidth(math.max(80, math.ceil(createBtn.label:GetStringWidth()) + 16))
+    ApplyBackdrop(createBtn, t.buttonBg or FALLBACK_THEME.buttonBg, t.buttonBorder or FALLBACK_THEME.buttonBorder, edge)
+    createBtn.label:SetTextColor(UnpackRGB(t.buttonText or FALLBACK_THEME.buttonText, 1, 0.96, 0.82))
+    dialog.createBtn = createBtn
+
+    self.copyDialog = dialog
+    return dialog
+end
+
+function UI:OpenCopyDialog(snippetId)
+    local snippet = self.macroSnippets and self.macroSnippets[snippetId]
+    if not snippet or not snippet.body then
+        return
+    end
+
+    local dialog = self:GetOrCreateCopyDialog()
+    dialog.currentSnippetId = snippetId
+    dialog.editBox:SetText(snippet.body)
+    dialog:Show()
+    dialog.editBox:SetFocus()
+    dialog.editBox:HighlightText()
+
+    if snippet.isMacro then
+        dialog.createBtn:Show()
+    else
+        dialog.createBtn:Hide()
+    end
+end
+
+function UI:CreateInGameMacro(snippetId)
+    local snippet = self.macroSnippets and self.macroSnippets[snippetId]
+    if not snippet or not snippet.body then
+        return
+    end
+
+    if InCombatLockdown and InCombatLockdown() then
+        self:AddMessage("system", "|cffff4444[" .. ns.L.LABEL_JINY .. "] " .. ns.L.MACRO_ERR_COMBAT .. "|r")
+        return
+    end
+
+    local name = snippet.name or "JinyMacro"
+    if #name > 16 then
+        name = name:sub(1, 16)
+    end
+    local icon = 134400
+    local body = snippet.body
+    if #body > 255 then
+        body = body:sub(1, 255)
+    end
+
+    local existingIndex = GetMacroIndexByName and GetMacroIndexByName(name)
+    local macroIndex
+    if existingIndex and existingIndex > 0 then
+        if EditMacro then
+            EditMacro(existingIndex, name, icon, body)
+            macroIndex = existingIndex
+            local msg = string.format(ns.L.MACRO_UPDATED, name)
+            self:AddMessage("system", "|cff10b981[" .. ns.L.LABEL_JINY .. "] " .. msg .. "|r")
+        end
+    else
+        local numGlobal, numChar = 0, 0
+        if GetNumMacros then
+            numGlobal, numChar = GetNumMacros()
+        end
+        if numGlobal >= 120 and numChar >= 18 then
+            self:AddMessage("system", "|cffff4444[" .. ns.L.LABEL_JINY .. "] " .. ns.L.MACRO_ERR_FULL .. "|r")
+            return
+        end
+        local isPerChar = (numGlobal >= 120)
+        if CreateMacro then
+            macroIndex = CreateMacro(name, icon, body, isPerChar)
+        end
+        if macroIndex and macroIndex > 0 then
+            local msg = string.format(ns.L.MACRO_CREATED, name)
+            self:AddMessage("system", "|cff10b981[" .. ns.L.LABEL_JINY .. "] " .. msg .. "|r")
+        else
+            self:AddMessage("system", "|cffff4444[" .. ns.L.LABEL_JINY .. "] " .. ns.L.MACRO_ERR_CREATE .. "|r")
+        end
+    end
+
+    if macroIndex and macroIndex > 0 and PlaySound and SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPEN then
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPEN)
+    end
+end
+
 function UI:UpdateStatus()
     if not self.statusText then
         return
@@ -208,6 +544,9 @@ function UI:UpdateStatus()
     local t = GetTheme()
     if (self.pendingCount or 0) > 0 then
         self.statusText:SetText(ns.L.STATUS_MOCK)
+        self.statusText:SetTextColor(UnpackRGB(t.jinyLabel or t.muted, 0.12, 0.23, 0.54))
+    elseif ns.db and type(ns.db.outbox) == "table" and #ns.db.outbox > 0 then
+        self.statusText:SetText(ns.L.STATUS_WAITING)
         self.statusText:SetTextColor(UnpackRGB(t.jinyLabel or t.muted, 0.12, 0.23, 0.54))
     else
         self.statusText:SetText(ns.L.STATUS_READY)
@@ -336,8 +675,10 @@ function UI:Create()
     local clearBtn = CreateHandButton(footer, "GameFontNormalSmall", function()
         if ns.db then
             ns.db.history = {}
+            ns.db.outbox = {}
         end
         UI:Clear()
+        UI:UpdateStatus()
         UI:AddMessage("system", ns.L.HISTORY_CLEARED)
     end)
     clearBtn:SetHeight(22)
@@ -369,8 +710,32 @@ function UI:Create()
     self.langBtn = langBtn
     table.insert(self.buttons, langBtn)
 
+    local syncBtn = CreateHandButton(footer, "GameFontNormalSmall", function()
+        if type(ns.SyncCompanion) == "function" then
+            ns.SyncCompanion()
+        elseif type(ReloadUI) == "function" then
+            ReloadUI()
+        end
+    end)
+    syncBtn:SetHeight(22)
+    syncBtn:SetPoint("LEFT", langBtn, "RIGHT", 6, 0)
+    syncBtn:HookScript("OnEnter", function(selfBtn)
+        if GameTooltip then
+            GameTooltip:SetOwner(selfBtn, "ANCHOR_TOP")
+            GameTooltip:SetText(ns.L.SYNC_TIP)
+            GameTooltip:Show()
+        end
+    end)
+    syncBtn:HookScript("OnLeave", function()
+        if GameTooltip then
+            GameTooltip:Hide()
+        end
+    end)
+    self.syncBtn = syncBtn
+    table.insert(self.buttons, syncBtn)
+
     local footerText = footer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    footerText:SetPoint("LEFT", langBtn, "RIGHT", 8, 0)
+    footerText:SetPoint("LEFT", syncBtn, "RIGHT", 8, 0)
     footerText:SetPoint("RIGHT", footer, "RIGHT", -18, 0)
     footerText:SetJustifyH("RIGHT")
     footerText:SetWordWrap(false)
@@ -598,7 +963,13 @@ function UI:Create()
         end
     end)
     historyFrame:SetScript("OnHyperlinkClick", function(selfHistory, link, text, button)
-        if SetItemRef then
+        if type(link) == "string" and link:find("^jinycopy:") then
+            local sid = link:sub(10)
+            UI:OpenCopyDialog(sid)
+        elseif type(link) == "string" and link:find("^jinymacro:") then
+            local sid = link:sub(11)
+            UI:CreateInGameMacro(sid)
+        elseif SetItemRef then
             SetItemRef(link, text, button, selfHistory)
         end
     end)
@@ -666,6 +1037,33 @@ function UI:ApplyTheme()
         end
     end
 
+    if self.copyDialog then
+        ApplyBackdrop(self.copyDialog, t.bg or FALLBACK_THEME.bg, t.border or FALLBACK_THEME.border, edge)
+        ApplyBackdrop(self.copyDialog.header, t.headerBg or FALLBACK_THEME.headerBg, t.border or FALLBACK_THEME.border, edge)
+        ApplyBackdrop(self.copyDialog.editContainer, t.inputBg or FALLBACK_THEME.inputBg, t.inputBorder or FALLBACK_THEME.inputBorder, edge)
+        if self.copyDialog.title then
+            self.copyDialog.title:SetTextColor(UnpackRGB(t.title or FALLBACK_THEME.title, 0.29, 0.15, 0.03))
+        end
+        if self.copyDialog.editBox then
+            self.copyDialog.editBox:SetTextColor(UnpackRGB(t.inputText or FALLBACK_THEME.inputText, 0.17, 0.09, 0.03))
+        end
+        if self.copyDialog.hint then
+            self.copyDialog.hint:SetTextColor(UnpackRGB(t.muted or FALLBACK_THEME.muted, 0.42, 0.27, 0.14))
+        end
+        if self.copyDialog.closeBtn then
+            ApplyBackdrop(self.copyDialog.closeBtn, t.buttonBg or FALLBACK_THEME.buttonBg, t.buttonBorder or FALLBACK_THEME.buttonBorder, edge)
+            if self.copyDialog.closeBtn.label then
+                self.copyDialog.closeBtn.label:SetTextColor(UnpackRGB(t.buttonText or FALLBACK_THEME.buttonText, 1, 0.96, 0.82))
+            end
+        end
+        if self.copyDialog.createBtn then
+            ApplyBackdrop(self.copyDialog.createBtn, t.buttonBg or FALLBACK_THEME.buttonBg, t.buttonBorder or FALLBACK_THEME.buttonBorder, edge)
+            if self.copyDialog.createBtn.label then
+                self.copyDialog.createBtn.label:SetTextColor(UnpackRGB(t.buttonText or FALLBACK_THEME.buttonText, 1, 0.96, 0.82))
+            end
+        end
+    end
+
     self:UpdateStatus()
 end
 
@@ -690,7 +1088,11 @@ function UI:Refresh()
     if self.langBtn and self.langBtn.label then
         local localeKey = "LANG_" .. (ns.db and ns.db.locale or "auto")
         self.langBtn.label:SetText(ns.L.BTN_LANGUAGE .. ": " .. ns.L[localeKey])
-        self.langBtn:SetWidth(math.max(110, math.ceil(self.langBtn.label:GetStringWidth()) + 18))
+        self.langBtn:SetWidth(math.max(104, math.ceil(self.langBtn.label:GetStringWidth()) + 16))
+    end
+    if self.syncBtn and self.syncBtn.label then
+        self.syncBtn.label:SetText(ns.L.BTN_SYNC)
+        self.syncBtn:SetWidth(math.max(64, math.ceil(self.syncBtn.label:GetStringWidth()) + 16))
     end
     if self.footerText then
         self.footerText:SetText(ns.L.FOOTER)
@@ -766,11 +1168,23 @@ function UI:AddMessage(who, text)
         self.historyFrame:AddMessage(formatted, tr, tg, tb)
     elseif who == "jiny" then
         local hex = ColorHex(t.jinyLabel or FALLBACK_THEME.jinyLabel)
-        local formatted = "|c" .. hex .. "[" .. ns.L.LABEL_JINY .. "]|r " .. msg
-        self.historyFrame:AddMessage(formatted, tr, tg, tb)
+        local formatted = ProcessMessageContent(msg)
+        local firstLine = true
+        for line in (formatted .. "\n"):gmatch("(.-)\r?\n") do
+            local lineToRender = (line == "") and " " or line
+            if firstLine then
+                self.historyFrame:AddMessage("|c" .. hex .. "[" .. ns.L.LABEL_JINY .. "]|r " .. lineToRender, tr, tg, tb)
+                firstLine = false
+            else
+                self.historyFrame:AddMessage(lineToRender, tr, tg, tb)
+            end
+        end
     else
         local mr, mg, mb = UnpackRGB(t.muted or FALLBACK_THEME.muted, 0.42, 0.27, 0.14)
-        self.historyFrame:AddMessage(msg, mr, mg, mb)
+        for line in (msg .. "\n"):gmatch("(.-)\r?\n") do
+            local lineToRender = (line == "") and " " or line
+            self.historyFrame:AddMessage(lineToRender, mr, mg, mb)
+        end
     end
 end
 
@@ -792,14 +1206,18 @@ function UI:Ask(text)
     self:UpdateStatus()
 
     if ns.Transport and type(ns.Transport.Send) == "function" then
-        ns.Transport.Send(cleanText, function(reply)
+        ns.Transport.Send(cleanText, function(reply, meta)
             self.pendingCount = math.max(0, (self.pendingCount or 1) - 1)
             self:UpdateStatus()
 
-            local replyText = tostring(reply or "")
-            self:AddMessage("jiny", replyText)
-            if type(ns.AddHistory) == "function" then
-                ns.AddHistory("jiny", replyText)
+            if type(meta) == "table" and meta.queued then
+                self:AddMessage("system", ns.L.SENT_TO_COMPANION)
+            elseif reply ~= nil then
+                local replyText = tostring(reply)
+                self:AddMessage("jiny", replyText)
+                if type(ns.AddHistory) == "function" then
+                    ns.AddHistory("jiny", replyText)
+                end
             end
         end)
     else

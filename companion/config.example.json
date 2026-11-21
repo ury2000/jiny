@@ -1,0 +1,6 @@
+{
+  "api_key": "",
+  "model": "gemini-3.8-flash",
+  "wow_forever_dir": "..\\_forever_",
+  "poll_interval_seconds": 0.25
+}

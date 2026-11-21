@@ -1,0 +1,17 @@
+# Secretos locales y configuracion del usuario
+companion/config.json
+.env
+
+# Python cache y entornos virtuales
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.tmp
+.vscode/
+.history/
+.worktree
+.worktrees
+.cursor/
+.antigravity/
+.agent/

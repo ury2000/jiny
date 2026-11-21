@@ -10,6 +10,9 @@ local DB_DEFAULTS = {
     size = { 420, 300 },
     scale = 1.0,
     shown = false,
+    mode = "companion",
+    outbox = {},
+    processedIds = {},
     history = {},
 }
 
@@ -81,6 +84,43 @@ function ns.AddHistory(who, text)
     end
 end
 
+local function RemoveOutboxId(reqId)
+    if not ns.db or type(ns.db.outbox) ~= "table" then
+        return
+    end
+    for i = #ns.db.outbox, 1, -1 do
+        local entry = ns.db.outbox[i]
+        if type(entry) == "table" and entry.id == reqId then
+            table.remove(ns.db.outbox, i)
+        end
+    end
+end
+
+function ns.IngestCompanionReplies()
+    if not ns.db or not ns.CompanionData or type(ns.CompanionData.replies) ~= "table" then
+        return
+    end
+    if type(ns.db.processedIds) ~= "table" then
+        ns.db.processedIds = {}
+    end
+    for _, item in ipairs(ns.CompanionData.replies) do
+        if type(item) == "table" and item.id and item.a and not ns.db.processedIds[item.id] then
+            ns.AddHistory("jiny", tostring(item.a))
+            ns.db.processedIds[item.id] = true
+            RemoveOutboxId(item.id)
+        end
+    end
+end
+
+function ns.SyncCompanion()
+    if ns.db and ns.UI and ns.UI.frame and ns.UI.frame:IsShown() then
+        ns.db.shown = true
+    end
+    if type(ReloadUI) == "function" then
+        ReloadUI()
+    end
+end
+
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
@@ -93,6 +133,10 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1)
             ns.Locale.Set(ns.db.locale)
         end
     elseif event == "PLAYER_LOGIN" then
+        ns.IngestCompanionReplies()
+        if ns.Transport and type(ns.Transport.Init) == "function" then
+            ns.Transport:Init()
+        end
         if ns.UI and type(ns.UI.Create) == "function" then
             ns.UI:Create()
             if ns.db and ns.db.shown then
@@ -119,8 +163,32 @@ SlashCmdList["JINY"] = function(msg)
         PrintChat(ns.L.HELP_ASK)
         PrintChat(ns.L.HELP_LANG)
         PrintChat(ns.L.HELP_SCALE)
+        PrintChat(ns.L.HELP_SYNC)
+        PrintChat(ns.L.HELP_MODE)
         PrintChat(ns.L.HELP_RESET)
         PrintChat(ns.L.HELP_CLEAR)
+    elseif lowerCmd == "sync" then
+        ns.SyncCompanion()
+    elseif lowerCmd == "mode" then
+        local arg = Trim(rest):lower()
+        if arg == "companion" or arg == "mock" then
+            if ns.db then
+                ns.db.mode = arg
+            end
+            if ns.Transport and type(ns.Transport.Init) == "function" then
+                ns.Transport:Init()
+            end
+            if ns.UI and type(ns.UI.UpdateStatus) == "function" then
+                ns.UI:UpdateStatus()
+            end
+            local changedMsg = ns.L.MODE_CHANGED:format(arg)
+            PrintChat(changedMsg)
+            if ns.UI.frame and ns.UI.frame:IsShown() then
+                ns.UI:AddMessage("system", changedMsg)
+            end
+        else
+            PrintChat(ns.L.HELP_MODE)
+        end
     elseif lowerCmd == "lang" then
         local arg = Trim(rest):lower()
         local mapped = LANG_MAP[arg]
@@ -177,8 +245,10 @@ SlashCmdList["JINY"] = function(msg)
     elseif lowerCmd == "clear" then
         if ns.db then
             ns.db.history = {}
+            ns.db.outbox = {}
         end
         ns.UI:Clear()
+        ns.UI:UpdateStatus()
         PrintChat(ns.L.HISTORY_CLEARED)
         if ns.UI.frame and ns.UI.frame:IsShown() then
             ns.UI:AddMessage("system", ns.L.HISTORY_CLEARED)
