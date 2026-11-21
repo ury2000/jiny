@@ -212,14 +212,31 @@ class TkOverlayBackend(OverlayBackend):
             body = tk.Text(root, wrap="word", state="disabled", padx=8, pady=6, borderwidth=0)
             body.pack(fill="both", expand=True, padx=6, pady=(0, 6))
 
+            tcl_error = getattr(tk, "TclError", RuntimeError)
+            ui_refs: dict[str, Any] = {
+                "root": root,
+                "header": header,
+                "title_var": title_var,
+                "title_lbl": title_lbl,
+                "body": body,
+            }
+            del root, header, title_var, title_lbl, body
+
             def _apply_snapshot(snap: dict[str, Any]) -> None:
+                r = ui_refs.get("root")
+                h = ui_refs.get("header")
+                tv = ui_refs.get("title_var")
+                tl = ui_refs.get("title_lbl")
+                b = ui_refs.get("body")
+                if r is None or h is None or tv is None or tl is None or b is None:
+                    return
                 pal = snap.get("palette", OVERLAY_THEMES["DarkGlass"])
-                root.configure(bg=pal["bg"])
-                header.configure(bg=pal["header_bg"])
+                r.configure(bg=pal["bg"])
+                h.configure(bg=pal["header_bg"])
                 provider = snap.get("provider") or "companion"
-                title_var.set(f"Jiny ({provider}) • {snap.get('status', 'idle')}")
-                title_lbl.configure(bg=pal["header_bg"], fg=pal["title"])
-                body.configure(bg=pal["input_bg"], fg=pal["text"])
+                tv.set(f"Jiny ({provider}) • {snap.get('status', 'idle')}")
+                tl.configure(bg=pal["header_bg"], fg=pal["title"])
+                b.configure(bg=pal["input_bg"], fg=pal["text"])
 
                 lines: list[str] = []
                 if snap.get("latest_question"):
@@ -231,38 +248,68 @@ class TkOverlayBackend(OverlayBackend):
                 if not lines:
                     lines.append("Awaiting Classic Forever queries...")
 
-                body.configure(state="normal")
-                body.delete("1.0", "end")
-                body.insert("1.0", "\n\n".join(lines))
-                body.configure(state="disabled")
+                b.configure(state="normal")
+                b.delete("1.0", "end")
+                b.insert("1.0", "\n\n".join(lines))
+                b.configure(state="disabled")
 
             def _on_close() -> None:
                 self._closed = True
+                r = ui_refs.get("root")
+                if r is None:
+                    return
                 try:
-                    root.destroy()
+                    r.quit()
+                except Exception:
+                    pass
+                try:
+                    r.destroy()
                 except Exception:
                     pass
 
-            root.protocol("WM_DELETE_WINDOW", _on_close)
+            ui_refs["root"].protocol("WM_DELETE_WINDOW", _on_close)
 
             def _poll_queue() -> None:
+                r = ui_refs.get("root")
+                if r is None:
+                    return
                 if self._closed:
+                    _on_close()
                     return
                 try:
                     while True:
+                        if self._closed:
+                            _on_close()
+                            return
                         kind, payload = self._queue.get_nowait()
                         if kind == "close":
                             _on_close()
                             return
                         if kind == "render" and isinstance(payload, dict):
-                            _apply_snapshot(payload)
+                            try:
+                                _apply_snapshot(payload)
+                            except (tcl_error, RuntimeError):
+                                _on_close()
+                                return
                 except queue.Empty:
                     pass
-                root.after(100, _poll_queue)
+                if self._closed:
+                    _on_close()
+                    return
+                try:
+                    r.after(100, _poll_queue)
+                except (tcl_error, RuntimeError):
+                    _on_close()
 
             self._ready_event.set()
-            root.after(100, _poll_queue)
-            root.mainloop()
+            try:
+                ui_refs["root"].after(100, _poll_queue)
+                ui_refs["root"].mainloop()
+            except (tcl_error, RuntimeError):
+                _on_close()
+            finally:
+                _on_close()
+                ui_refs.clear()
         except Exception as exc:
             self._start_error = exc
             self._ready_event.set()

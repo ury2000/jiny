@@ -60,7 +60,7 @@ local FALLBACK_THEME = {
     codeBorder = { 0.349, 0.310, 0.259, 1 },
     codeTitle = { 0.212, 0.247, 0.310, 1 },
     codeBody = { 0.071, 0.329, 0.349, 1 },
-    linkCopy = { 0.114, 0.306, 0.847, 1 },
+    linkCopy = { 0.086, 0.255, 0.729, 1 },
     linkMacro = { 0.024, 0.373, 0.275, 1 },
     edgeSize = 2,
 }

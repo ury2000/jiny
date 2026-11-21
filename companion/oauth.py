@@ -75,7 +75,7 @@ def load_client_secrets_file(path: Path) -> dict[str, str]:
         raise OAuthError(f"Client secrets file not found: {path}")
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise OAuthError(f"Failed to read client secrets JSON: {exc}") from exc
 
     if not isinstance(raw, dict):
@@ -171,7 +171,7 @@ class OAuthTokenStore:
             return None
         try:
             raw = json.loads(self.token_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise OAuthError(f"Failed to read OAuth token store '{self.token_path}': {exc}") from exc
         return OAuthToken.from_dict(raw)
 
@@ -273,7 +273,10 @@ class OAuthManager:
             except (TypeError, ValueError) as exc:
                 raise OAuthError("Invalid 'expires_in' in OAuth token response.") from exc
         elif payload.get("expires_at") is not None:
-            expires_at = float(payload["expires_at"])
+            try:
+                expires_at = float(payload["expires_at"])
+            except (TypeError, ValueError) as exc:
+                raise OAuthError("Invalid 'expires_at' in OAuth token response.") from exc
 
         refresh_raw = payload.get("refresh_token")
         refresh_token = str(refresh_raw).strip() if refresh_raw else fallback_refresh_token
@@ -401,6 +404,15 @@ class OAuthManager:
         class _CallbackHandler(BaseHTTPRequestHandler):
             def do_GET(self_req) -> None:
                 parsed = urllib.parse.urlparse(self_req.path)
+                if parsed.path not in ("/callback", "/"):
+                    body = b"Not Found"
+                    self_req.send_response(404)
+                    self_req.send_header("Content-Type", "text/plain; charset=utf-8")
+                    self_req.send_header("Content-Length", str(len(body)))
+                    self_req.end_headers()
+                    self_req.wfile.write(body)
+                    return
+
                 params = urllib.parse.parse_qs(parsed.query)
                 if "error" in params:
                     result["error"] = OAuthError(f"Authorization denied: {params['error'][0]}")

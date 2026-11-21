@@ -14,9 +14,13 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import types
 import unittest
 from unittest import mock
+import urllib.error
+import urllib.parse
+import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -40,6 +44,7 @@ from companion.overlay import (
     HeadlessOverlayBackend,
     OverlayController,
     OverlayManager,
+    TkOverlayBackend,
 )
 from companion.providers import (
     GeminiAPIKeyProvider,
@@ -219,6 +224,48 @@ class TestConfigAndVersion(unittest.TestCase):
             self.assertAlmostEqual(cfg.overlay_opacity, 0.85)
             self.assertFalse(cfg.overlay_always_on_top)
 
+    def test_load_config_empty_numeric_env_and_json_null_or_zero(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg_path = Path(tmp) / "config.json"
+            cfg_path.write_text(
+                json.dumps(
+                    {
+                        "wow_forever_dir": tmp,
+                        "tts_rate": None,
+                        "tts_volume": None,
+                        "overlay_opacity": None,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with mock.patch.dict(
+                os.environ,
+                {
+                    "JINY_TTS_RATE": "",
+                    "JINY_TTS_VOLUME": "   ",
+                    "JINY_OVERLAY_OPACITY": "",
+                },
+                clear=False,
+            ):
+                cfg = load_config(cfg_path)
+            self.assertEqual(cfg.tts_rate, 0)
+            self.assertEqual(cfg.tts_volume, 100)
+            self.assertAlmostEqual(cfg.overlay_opacity, 0.92)
+
+            # Explicit 0 in JSON must not be coerced to 100
+            cfg_path.write_text(
+                json.dumps({"wow_forever_dir": tmp, "tts_rate": 0, "tts_volume": 0}),
+                encoding="utf-8",
+            )
+            with mock.patch.dict(
+                os.environ,
+                {"JINY_TTS_RATE": "", "JINY_TTS_VOLUME": "", "JINY_OVERLAY_OPACITY": ""},
+                clear=False,
+            ):
+                cfg_zero = load_config(cfg_path)
+            self.assertEqual(cfg_zero.tts_rate, 0)
+            self.assertEqual(cfg_zero.tts_volume, 0)
+
 
 class TestProvidersOffline(unittest.TestCase):
     def _base_cfg(self, tmp: str, **overrides) -> CompanionConfig:
@@ -368,6 +415,86 @@ class TestProvidersOffline(unittest.TestCase):
                     input_fn=lambda _prompt: "manual-code-xyz",
                 )
             self.assertEqual(tok2.access_token, "tok-initial-secret")
+
+    def test_oauth_corrupted_non_utf8_bad_expires_at_and_favicon_loopback(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            bad_secret = Path(tmp) / "client_secret.json"
+            bad_secret.write_bytes(b"\xff\xfe\x00\x81invalid-utf8")
+            with self.assertRaises(OAuthError):
+                load_client_secrets_file(bad_secret)
+
+            bad_token = Path(tmp) / "oauth_token.json"
+            bad_token.write_bytes(b"\xff\xfe\x00\x81invalid-utf8")
+            with self.assertRaises(OAuthError):
+                OAuthTokenStore(bad_token).load()
+
+            mgr = OAuthManager(client_id="cid-test", token_path=bad_token)
+            status = mgr.get_token_status()
+            self.assertFalse(status["has_token"])
+            self.assertIn("error", status)
+
+            cfg = self._base_cfg(tmp, provider="gemini_oauth", oauth_token_path=bad_token)
+            probe = probe_provider_status(cfg)
+            self.assertFalse(probe["ready"])
+            self.assertIn("token store error", probe["detail"])
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = cmd_status(cfg)
+            self.assertEqual(rc, 0)
+
+            with self.assertRaises(OAuthError):
+                mgr._token_from_response({"access_token": "tok", "expires_at": "not-a-float"})
+            with self.assertRaises(OAuthError):
+                mgr._token_from_response({"access_token": "tok", "expires_at": {"bad": 1}})
+
+            # Loopback server ignores /favicon.ico (404) without failing real /callback
+            token_ok = Path(tmp) / "oauth_ok.json"
+
+            def fake_http(url: str, headers: dict[str, str], body: bytes | None, timeout: float):
+                return 200, json.dumps({"access_token": "tok-loopback", "expires_in": 600}).encode("utf-8")
+
+            mgr_loop = OAuthManager(client_id="cid-loop", token_path=token_ok, http_transport=fake_http)
+            favicon_status: list[int] = []
+            callback_status: list[int] = []
+            client_errors: list[BaseException] = []
+
+            def fake_open_browser(auth_url: str) -> bool:
+                parsed = urllib.parse.urlparse(auth_url)
+                qs = urllib.parse.parse_qs(parsed.query)
+                redirect_uri = qs["redirect_uri"][0]
+                state = qs["state"][0]
+                r_parsed = urllib.parse.urlparse(redirect_uri)
+                favicon_url = f"{r_parsed.scheme}://{r_parsed.netloc}/favicon.ico"
+                cb_url = f"{redirect_uri}?code=auth-after-favicon&state={urllib.parse.quote(state)}"
+
+                def _send_requests() -> None:
+                    try:
+                        try:
+                            with urllib.request.urlopen(favicon_url, timeout=2.0) as resp:
+                                favicon_status.append(resp.status)
+                        except urllib.error.HTTPError as err:
+                            favicon_status.append(err.code)
+                        with urllib.request.urlopen(cb_url, timeout=2.0) as resp2:
+                            callback_status.append(resp2.status)
+                    except BaseException as exc:  # pragma: no cover
+                        client_errors.append(exc)
+
+                threading.Thread(target=_send_requests, daemon=True).start()
+                return True
+
+            with mock.patch("companion.oauth.webbrowser.open", side_effect=fake_open_browser):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    tok = mgr_loop.authorize_interactive(
+                        port=0,
+                        timeout_seconds=5.0,
+                        open_browser=True,
+                        manual_fallback=False,
+                    )
+            self.assertEqual(client_errors, [])
+            self.assertEqual(favicon_status, [404])
+            self.assertEqual(callback_status, [200])
+            self.assertEqual(tok.access_token, "tok-loopback")
 
     def test_oauth_provider_bearer_and_vertex_modes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -614,6 +741,158 @@ class TestOverlayModule(unittest.TestCase):
             self.assertIn("no display", mgr_tk.fallback_reason or "")
             mgr_tk.close()
             mgr_tk.close()  # idempotent
+
+    def test_tk_overlay_backend_close_empty_saturated_and_external_destroy(self) -> None:
+        class FakeTclError(Exception):
+            pass
+
+        def _make_fake_tk(fail_on_configure: bool = False):
+            fake_tk = types.ModuleType("tkinter")
+            fake_tk.TclError = FakeTclError
+            created_roots: list[object] = []
+
+            class FakeWidget:
+                def __init__(self, master=None, **kwargs) -> None:
+                    self.master = master
+                    self.kwargs = kwargs
+
+                def pack(self, **kwargs) -> None:
+                    return
+
+                def configure(self, **kwargs) -> None:
+                    if fail_on_configure:
+                        raise FakeTclError("invalid command name")
+
+                def delete(self, *args) -> None:
+                    return
+
+                def insert(self, *args) -> None:
+                    return
+
+            class FakeStringVar:
+                def __init__(self, value: str = "") -> None:
+                    self.value = value
+
+                def set(self, value: str) -> None:
+                    self.value = value
+
+            class FakeRoot:
+                def __init__(self) -> None:
+                    self._cond = threading.Condition()
+                    self._scheduled: list[tuple[float, object]] = []
+                    self._running = True
+                    self.destroyed = False
+                    self.quit_called = False
+                    created_roots.append(self)
+
+                def title(self, _t: str) -> None:
+                    return
+
+                def geometry(self, _g: str) -> None:
+                    return
+
+                def minsize(self, _w: int, _h: int) -> None:
+                    return
+
+                def attributes(self, *_args) -> None:
+                    return
+
+                def protocol(self, _name: str, _fn) -> None:
+                    return
+
+                def configure(self, **kwargs) -> None:
+                    if self.destroyed or fail_on_configure:
+                        raise FakeTclError("application has been destroyed")
+
+                def after(self, ms: int, fn) -> None:
+                    if self.destroyed:
+                        raise FakeTclError("application has been destroyed")
+                    with self._cond:
+                        self._scheduled.append((time.monotonic() + (ms / 1000.0), fn))
+                        self._cond.notify_all()
+
+                def quit(self) -> None:
+                    self.quit_called = True
+                    with self._cond:
+                        self._running = False
+                        self._cond.notify_all()
+
+                def destroy(self) -> None:
+                    self.destroyed = True
+                    with self._cond:
+                        self._running = False
+                        self._cond.notify_all()
+
+                def mainloop(self) -> None:
+                    while True:
+                        due: list[object] = []
+                        with self._cond:
+                            if not self._running or self.destroyed:
+                                return
+                            now = time.monotonic()
+                            remaining: list[tuple[float, object]] = []
+                            next_deadline = None
+                            for run_at, fn in self._scheduled:
+                                if run_at <= now:
+                                    due.append(fn)
+                                else:
+                                    remaining.append((run_at, fn))
+                                    if next_deadline is None or run_at < next_deadline:
+                                        next_deadline = run_at
+                            self._scheduled = remaining
+                            if not due:
+                                wait_for = 0.05 if next_deadline is None else max(0.005, min(0.05, next_deadline - now))
+                                self._cond.wait(timeout=wait_for)
+                                continue
+                        for fn in due:
+                            fn()
+
+            fake_tk.Tk = FakeRoot
+            fake_tk.Frame = FakeWidget
+            fake_tk.Label = FakeWidget
+            fake_tk.Text = FakeWidget
+            fake_tk.StringVar = FakeStringVar
+            return fake_tk, created_roots
+
+        # 1) Empty queue close
+        fake_tk_1, roots_1 = _make_fake_tk()
+        with mock.patch.dict(sys.modules, {"tkinter": fake_tk_1}):
+            b1 = TkOverlayBackend()
+            b1.start()
+            t0 = time.monotonic()
+            b1.close()
+            dt = time.monotonic() - t0
+            self.assertLess(dt, 1.0)
+            self.assertEqual(len(roots_1), 1)
+            self.assertTrue(roots_1[0].destroyed)
+            self.assertTrue(roots_1[0].quit_called)
+            self.assertFalse(b1._thread.is_alive())
+
+        # 2) Saturated queue close (maxsize=64)
+        fake_tk_2, roots_2 = _make_fake_tk()
+        with mock.patch.dict(sys.modules, {"tkinter": fake_tk_2}):
+            b2 = TkOverlayBackend()
+            b2.start()
+            snap = OverlayController().snapshot()
+            for i in range(100):
+                b2.render({**snap, "latest_reply": f"msg-{i}"})
+            t0 = time.monotonic()
+            b2.close()
+            dt = time.monotonic() - t0
+            self.assertLess(dt, 1.0)
+            self.assertEqual(len(roots_2), 1)
+            self.assertTrue(roots_2[0].destroyed)
+            self.assertFalse(b2._thread.is_alive())
+
+        # 3) External root destroy / TclError during _apply_snapshot exits UI thread cleanly
+        fake_tk_3, roots_3 = _make_fake_tk(fail_on_configure=True)
+        with mock.patch.dict(sys.modules, {"tkinter": fake_tk_3}):
+            b3 = TkOverlayBackend()
+            b3.start()
+            b3.render(OverlayController().snapshot())
+            b3._thread.join(timeout=1.0)
+            self.assertFalse(b3._thread.is_alive())
+            self.assertTrue(roots_3[0].destroyed)
 
 
 class TestMainWiring(unittest.TestCase):
