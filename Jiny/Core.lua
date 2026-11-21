@@ -129,6 +129,11 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1)
         JinyDB = JinyDB or {}
         MergeDefaults(JinyDB, DB_DEFAULTS)
         ns.db = JinyDB
+        if ns.Themes and type(ns.Themes.Resolve) == "function" then
+            ns.db.theme = ns.Themes:Resolve(ns.db.theme) or ns.Themes.default or "ParchmentLight"
+        elseif type(ns.db.theme) ~= "string" or ns.db.theme == "" then
+            ns.db.theme = "ParchmentLight"
+        end
         if ns.Locale and type(ns.Locale.Set) == "function" then
             ns.Locale.Set(ns.db.locale)
         end
@@ -162,6 +167,7 @@ SlashCmdList["JINY"] = function(msg)
         PrintChat(ns.L.HELP_TOGGLE)
         PrintChat(ns.L.HELP_ASK)
         PrintChat(ns.L.HELP_LANG)
+        PrintChat(ns.L.HELP_THEME)
         PrintChat(ns.L.HELP_SCALE)
         PrintChat(ns.L.HELP_SYNC)
         PrintChat(ns.L.HELP_MODE)
@@ -206,6 +212,35 @@ SlashCmdList["JINY"] = function(msg)
             end
         else
             PrintChat(ns.L.HELP_LANG)
+        end
+    elseif lowerCmd == "theme" then
+        local arg = Trim(rest):lower()
+        local targetTheme = nil
+        if arg == "toggle" then
+            if ns.Themes and type(ns.Themes.Next) == "function" then
+                targetTheme = ns.Themes:Next(ns.db and ns.db.theme)
+            else
+                local cur = (ns.db and ns.db.theme) or "ParchmentLight"
+                targetTheme = (cur == "DarkGlass") and "ParchmentLight" or "DarkGlass"
+            end
+        elseif ns.Themes and type(ns.Themes.Resolve) == "function" then
+            targetTheme = ns.Themes:Resolve(arg)
+        end
+
+        if targetTheme then
+            if ns.UI and type(ns.UI.SetTheme) == "function" then
+                targetTheme = ns.UI:SetTheme(targetTheme) or targetTheme
+            elseif ns.db then
+                ns.db.theme = targetTheme
+            end
+            local themeLabel = (ns.L and ns.L["THEME_" .. targetTheme]) or targetTheme
+            local changedMsg = ns.L.THEME_CHANGED:format(themeLabel)
+            PrintChat(changedMsg)
+            if ns.UI and ns.UI.frame and ns.UI.frame:IsShown() then
+                ns.UI:AddMessage("system", changedMsg)
+            end
+        else
+            PrintChat(ns.L.HELP_THEME)
         end
     elseif lowerCmd == "scale" then
         local arg = Trim(rest):lower()

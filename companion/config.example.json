@@ -6,5 +6,26 @@
   "rag_enabled": true,
   "rag_db_path": "companion/data/classic_era_rag.db",
   "rag_seed_path": "companion/data/classic_era_seed.json",
-  "rag_top_k": 4
+  "rag_top_k": 4,
+  "provider": "gemini_api_key",
+  "ollama_base_url": "http://127.0.0.1:11434",
+  "ollama_model": "llama3.1:8b",
+  "ollama_timeout": 60.0,
+  "oauth_client_id": "",
+  "oauth_client_secret": "",
+  "oauth_token_path": "companion/oauth_token.json",
+  "oauth_scopes": [
+    "https://www.googleapis.com/auth/cloud-platform"
+  ],
+  "vertexai": false,
+  "gcp_project": "",
+  "gcp_location": "us-central1",
+  "tts_enabled": false,
+  "tts_backend": "auto",
+  "tts_rate": 0,
+  "tts_volume": 100,
+  "overlay_enabled": false,
+  "overlay_theme": "DarkGlass",
+  "overlay_opacity": 0.92,
+  "overlay_always_on_top": true
 }

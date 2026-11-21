@@ -1,5 +1,7 @@
 # Secretos locales y configuracion del usuario
 companion/config.json
+companion/oauth_token.json
+companion/client_secret.json
 .env
 
 # Python cache y entornos virtuales

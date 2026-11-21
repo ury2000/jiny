@@ -1,6 +1,6 @@
-"""Unit tests for Jiny Companion v0.2."""
+"""Unit tests for Jiny Companion (baseline + discovered feature suites)."""
 
-import importlib.util
+import importlib
 from pathlib import Path
 import sys
 import tempfile
@@ -157,17 +157,15 @@ def load_tests(
     tests: unittest.TestSuite,
     pattern: str | None,
 ) -> unittest.TestSuite:
+    """Include sibling feature test modules when running test_companion.py directly."""
     if pattern is None:
         tools_dir = Path(__file__).resolve().parent
-        for stem in ("test_rag", "test_v04"):
-            candidate = tools_dir / f"{stem}.py"
-            if candidate.exists():
-                spec = importlib.util.spec_from_file_location(stem, candidate)
-                if spec is not None and spec.loader is not None:
-                    module = importlib.util.module_from_spec(spec)
-                    sys.modules[stem] = module
-                    spec.loader.exec_module(module)
-                    tests.addTests(loader.loadTestsFromModule(module))
+        if str(tools_dir) not in sys.path:
+            sys.path.insert(0, str(tools_dir))
+        for module_name in ("test_rag", "test_v04", "test_integration"):
+            if (tools_dir / f"{module_name}.py").exists():
+                mod = importlib.import_module(module_name)
+                tests.addTests(loader.loadTestsFromModule(mod))
     return tests
 
 

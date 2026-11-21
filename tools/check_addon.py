@@ -18,6 +18,11 @@ EXPECTED_LOCALE_KEYS = {
     "BTN_CLEAR",
     "BTN_SYNC",
     "BTN_LANGUAGE",
+    "BTN_THEME",
+    "THEME_ParchmentLight",
+    "THEME_DarkGlass",
+    "THEME_CHANGED",
+    "HELP_THEME",
     "LANG_auto",
     "LANG_enUS",
     "LANG_esES",
@@ -70,6 +75,7 @@ FORBIDDEN_LUA_PATTERNS = [
     r"/gem\b",
     r"/gemini\b",
     r"\bWOW_PROJECT_ID\b",
+    r"(?i)\bbot\b",
 ]
 
 
@@ -125,7 +131,7 @@ def check_locales() -> list[str]:
             errors.append(f"{code}.lua missing keys: {missing}")
         if extra:
             errors.append(f"{code}.lua extra keys: {extra}")
-        for fmt_key in ("MOCK_REPLY", "LANG_CHANGED", "SCALE_CHANGED", "MODE_CHANGED"):
+        for fmt_key in ("MOCK_REPLY", "LANG_CHANGED", "SCALE_CHANGED", "MODE_CHANGED", "THEME_CHANGED"):
             m = re.search(rf'^\s*{fmt_key}\s*=\s*"((?:[^"\\]|\\.)*)"', text, flags=re.MULTILINE)
             if not m or "%s" not in m.group(1):
                 errors.append(f"{code}.lua key {fmt_key} missing '%s' placeholder")

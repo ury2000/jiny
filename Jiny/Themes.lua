@@ -4,6 +4,15 @@ local Themes = {}
 ns.Themes = Themes
 
 Themes.default = "ParchmentLight"
+Themes.order = { "ParchmentLight", "DarkGlass" }
+
+local THEME_ALIASES = {
+    light = "ParchmentLight",
+    parchment = "ParchmentLight",
+    parchmentlight = "ParchmentLight",
+    dark = "DarkGlass",
+    darkglass = "DarkGlass",
+}
 
 local function clamp01(value, fallback)
     if type(value) ~= "number" then
@@ -35,6 +44,14 @@ Themes.registry = {
         buttonBorder = { 0.290, 0.145, 0.031, 1 },
         buttonText = { 1, 0.957, 0.824, 1 },
         buttonHover = { 0.580, 0.302, 0.118, 1 },
+        macroBorder = { 0.529, 0.369, 0.075, 1 },
+        macroTitle = { 0.420, 0.220, 0.020, 1 },
+        macroBody = { 0.180, 0.110, 0.039, 1 },
+        codeBorder = { 0.349, 0.310, 0.259, 1 },
+        codeTitle = { 0.212, 0.247, 0.310, 1 },
+        codeBody = { 0.071, 0.329, 0.349, 1 },
+        linkCopy = { 0.114, 0.306, 0.847, 1 },
+        linkMacro = { 0.024, 0.373, 0.275, 1 },
         edgeSize = 2,
     },
     DarkGlass = {
@@ -53,13 +70,51 @@ Themes.registry = {
         buttonBorder = { 0.231, 0.510, 0.965, 1 },
         buttonText = { 1, 1, 1, 1 },
         buttonHover = { 0.231, 0.510, 0.965, 1 },
+        macroBorder = { 0.722, 0.525, 0.043, 1 },
+        macroTitle = { 1.000, 0.820, 0.000, 1 },
+        macroBody = { 0.902, 0.800, 0.502, 1 },
+        codeBorder = { 0.443, 0.502, 0.588, 1 },
+        codeTitle = { 0.627, 0.682, 0.753, 1 },
+        codeBody = { 0.506, 0.902, 0.851, 1 },
+        linkCopy = { 0.376, 0.647, 0.980, 1 },
+        linkMacro = { 0.204, 0.827, 0.600, 1 },
         edgeSize = 1,
     },
 }
 
+function Themes:Resolve(name)
+    if type(name) ~= "string" then
+        return nil
+    end
+    local trimmed = name:match("^%s*(.-)%s*$")
+    if trimmed == "" then
+        return nil
+    end
+    if self.registry[trimmed] then
+        return trimmed
+    end
+    return THEME_ALIASES[trimmed:lower()]
+end
+
+function Themes:IsValid(name)
+    return self:Resolve(name) ~= nil
+end
+
+function Themes:Next(current)
+    local order = self.order or { "ParchmentLight", "DarkGlass" }
+    local resolved = self:Resolve(current) or self.default
+    for i, key in ipairs(order) do
+        if key == resolved then
+            return order[(i % #order) + 1]
+        end
+    end
+    return self.default
+end
+
 function Themes:Get(name)
-    if name and self.registry[name] then
-        return self.registry[name]
+    local key = self:Resolve(name)
+    if key and self.registry[key] then
+        return self.registry[key]
     end
     return self.registry[self.default]
 end

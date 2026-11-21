@@ -54,6 +54,14 @@ local FALLBACK_THEME = {
     buttonBorder = { 0.290, 0.145, 0.031, 1 },
     buttonText = { 1, 0.957, 0.824, 1 },
     buttonHover = { 0.580, 0.302, 0.118, 1 },
+    macroBorder = { 0.529, 0.369, 0.075, 1 },
+    macroTitle = { 0.420, 0.220, 0.020, 1 },
+    macroBody = { 0.180, 0.110, 0.039, 1 },
+    codeBorder = { 0.349, 0.310, 0.259, 1 },
+    codeTitle = { 0.212, 0.247, 0.310, 1 },
+    codeBody = { 0.071, 0.329, 0.349, 1 },
+    linkCopy = { 0.114, 0.306, 0.847, 1 },
+    linkMacro = { 0.024, 0.373, 0.275, 1 },
     edgeSize = 2,
 }
 
@@ -211,37 +219,49 @@ end
 
 local function FormatMacroBlock(name, body, sid)
     local out = {}
+    local t = GetTheme()
+    local bHex = ColorHex(t.macroBorder or FALLBACK_THEME.macroBorder)
+    local tHex = ColorHex(t.macroTitle or FALLBACK_THEME.macroTitle)
+    local bodyHex = ColorHex(t.macroBody or FALLBACK_THEME.macroBody)
+    local copyHex = ColorHex(t.linkCopy or FALLBACK_THEME.linkCopy)
+    local macroHex = ColorHex(t.linkMacro or FALLBACK_THEME.linkMacro)
     local macroName = (name and name ~= "") and name or "Macro"
-    table.insert(out, "|cffb8860b+--- [ |r|cffffd100" .. macroName .. "|r |cffb8860b] --------------------------------|r")
-    table.insert(out, "|cffb8860b| |r|cff3b82f6|Hjinycopy:" .. sid .. "|h[" .. ns.L.BTN_COPY_MACRO .. "]|h|r   |cff10b981|Hjinymacro:" .. sid .. "|h[" .. ns.L.BTN_CREATE_MACRO .. "]|h|r")
-    table.insert(out, "|cffb8860b+--------------------------------------------|r")
+    table.insert(out, "|c" .. bHex .. "+--- [ |r|c" .. tHex .. macroName .. "|r |c" .. bHex .. "] --------------------------------|r")
+    table.insert(out, "|c" .. bHex .. "| |r|c" .. copyHex .. "|Hjinycopy:" .. sid .. "|h[" .. ns.L.BTN_COPY_MACRO .. "]|h|r   |c" .. macroHex .. "|Hjinymacro:" .. sid .. "|h[" .. ns.L.BTN_CREATE_MACRO .. "]|h|r")
+    table.insert(out, "|c" .. bHex .. "+--------------------------------------------|r")
     for line in body:gmatch("([^\r\n]+)") do
         local trimmed = Trim(line)
         if trimmed ~= "" then
-            table.insert(out, "|cffb8860b| |r |cffe6cc80" .. trimmed .. "|r")
+            table.insert(out, "|c" .. bHex .. "| |r |c" .. bodyHex .. trimmed .. "|r")
         end
     end
-    table.insert(out, "|cffb8860b+--------------------------------------------|r")
+    table.insert(out, "|c" .. bHex .. "+--------------------------------------------|r")
     return table.concat(out, "\n")
 end
 
 local function FormatCodeBlock(lang, body, sid, isMacro)
     local out = {}
+    local t = GetTheme()
+    local bHex = ColorHex(t.codeBorder or FALLBACK_THEME.codeBorder)
+    local tHex = ColorHex(t.codeTitle or FALLBACK_THEME.codeTitle)
+    local bodyHex = ColorHex(t.codeBody or FALLBACK_THEME.codeBody)
+    local copyHex = ColorHex(t.linkCopy or FALLBACK_THEME.linkCopy)
+    local macroHex = ColorHex(t.linkMacro or FALLBACK_THEME.linkMacro)
     local blockTitle = (lang and lang ~= "") and lang:upper() or (isMacro and "MACRO" or "CODE")
-    table.insert(out, "|cff718096+--- [ |r|cffa0aec0" .. blockTitle .. "|r |cff718096] --------------------------------|r")
+    table.insert(out, "|c" .. bHex .. "+--- [ |r|c" .. tHex .. blockTitle .. "|r |c" .. bHex .. "] --------------------------------|r")
     if isMacro then
-        table.insert(out, "|cff718096| |r|cff3b82f6|Hjinycopy:" .. sid .. "|h[" .. ns.L.BTN_COPY_MACRO .. "]|h|r   |cff10b981|Hjinymacro:" .. sid .. "|h[" .. ns.L.BTN_CREATE_MACRO .. "]|h|r")
+        table.insert(out, "|c" .. bHex .. "| |r|c" .. copyHex .. "|Hjinycopy:" .. sid .. "|h[" .. ns.L.BTN_COPY_MACRO .. "]|h|r   |c" .. macroHex .. "|Hjinymacro:" .. sid .. "|h[" .. ns.L.BTN_CREATE_MACRO .. "]|h|r")
     else
-        table.insert(out, "|cff718096| |r|cff3b82f6|Hjinycopy:" .. sid .. "|h[" .. ns.L.BTN_COPY_CODE .. "]|h|r")
+        table.insert(out, "|c" .. bHex .. "| |r|c" .. copyHex .. "|Hjinycopy:" .. sid .. "|h[" .. ns.L.BTN_COPY_CODE .. "]|h|r")
     end
-    table.insert(out, "|cff718096+--------------------------------------------|r")
+    table.insert(out, "|c" .. bHex .. "+--------------------------------------------|r")
     for line in body:gmatch("([^\r\n]+)") do
         local trimmed = Trim(line)
         if trimmed ~= "" then
-            table.insert(out, "|cff718096| |r |cff81e6d9" .. trimmed .. "|r")
+            table.insert(out, "|c" .. bHex .. "| |r |c" .. bodyHex .. trimmed .. "|r")
         end
     end
-    table.insert(out, "|cff718096+--------------------------------------------|r")
+    table.insert(out, "|c" .. bHex .. "+--------------------------------------------|r")
     return table.concat(out, "\n")
 end
 
@@ -665,14 +685,26 @@ function UI:Create()
     statusText:SetWordWrap(false)
     self.statusText = statusText
 
-    -- Footer
+    -- Footer (2 rows so MIN_WIDTH=320 remains clean and uncrowded in all locales)
     local footer = CreateFrame("Frame", nil, frame)
     footer:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 8, 8)
     footer:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -8, 8)
-    footer:SetHeight(24)
+    footer:SetHeight(48)
     self.footer = footer
 
-    local clearBtn = CreateHandButton(footer, "GameFontNormalSmall", function()
+    local footerRow1 = CreateFrame("Frame", nil, footer)
+    footerRow1:SetPoint("TOPLEFT", footer, "TOPLEFT", 0, 0)
+    footerRow1:SetPoint("TOPRIGHT", footer, "TOPRIGHT", 0, 0)
+    footerRow1:SetHeight(22)
+    self.footerRow1 = footerRow1
+
+    local footerRow2 = CreateFrame("Frame", nil, footer)
+    footerRow2:SetPoint("BOTTOMLEFT", footer, "BOTTOMLEFT", 0, 0)
+    footerRow2:SetPoint("BOTTOMRIGHT", footer, "BOTTOMRIGHT", 0, 0)
+    footerRow2:SetHeight(22)
+    self.footerRow2 = footerRow2
+
+    local clearBtn = CreateHandButton(footerRow1, "GameFontNormalSmall", function()
         if ns.db then
             ns.db.history = {}
             ns.db.outbox = {}
@@ -682,11 +714,11 @@ function UI:Create()
         UI:AddMessage("system", ns.L.HISTORY_CLEARED)
     end)
     clearBtn:SetHeight(22)
-    clearBtn:SetPoint("LEFT", footer, "LEFT", 0, 0)
+    clearBtn:SetPoint("LEFT", footerRow1, "LEFT", 0, 0)
     self.clearBtn = clearBtn
     table.insert(self.buttons, clearBtn)
 
-    local langBtn = CreateHandButton(footer, "GameFontNormalSmall", function()
+    local langBtn = CreateHandButton(footerRow1, "GameFontNormalSmall", function()
         local order = (ns.Locale and ns.Locale.order) or { "auto", "enUS", "esES", "itIT" }
         local current = (ns.db and ns.db.locale) or "auto"
         local nextIdx = 1
@@ -710,7 +742,7 @@ function UI:Create()
     self.langBtn = langBtn
     table.insert(self.buttons, langBtn)
 
-    local syncBtn = CreateHandButton(footer, "GameFontNormalSmall", function()
+    local syncBtn = CreateHandButton(footerRow1, "GameFontNormalSmall", function()
         if type(ns.SyncCompanion) == "function" then
             ns.SyncCompanion()
         elseif type(ReloadUI) == "function" then
@@ -734,9 +766,23 @@ function UI:Create()
     self.syncBtn = syncBtn
     table.insert(self.buttons, syncBtn)
 
-    local footerText = footer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    footerText:SetPoint("LEFT", syncBtn, "RIGHT", 8, 0)
-    footerText:SetPoint("RIGHT", footer, "RIGHT", -18, 0)
+    local themeBtn = CreateHandButton(footerRow2, "GameFontNormalSmall", function()
+        local current = (ns.db and ns.db.theme) or "ParchmentLight"
+        local nextTheme = (ns.Themes and type(ns.Themes.Next) == "function")
+            and ns.Themes:Next(current)
+            or ((current == "DarkGlass") and "ParchmentLight" or "DarkGlass")
+        local resolved = UI:SetTheme(nextTheme) or nextTheme
+        local themeLabel = (ns.L and ns.L["THEME_" .. resolved]) or resolved
+        UI:AddMessage("system", ns.L.THEME_CHANGED:format(themeLabel))
+    end)
+    themeBtn:SetHeight(22)
+    themeBtn:SetPoint("LEFT", footerRow2, "LEFT", 0, 0)
+    self.themeBtn = themeBtn
+    table.insert(self.buttons, themeBtn)
+
+    local footerText = footerRow2:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    footerText:SetPoint("LEFT", themeBtn, "RIGHT", 8, 0)
+    footerText:SetPoint("RIGHT", footerRow2, "RIGHT", -18, 0)
     footerText:SetJustifyH("RIGHT")
     footerText:SetWordWrap(false)
     self.footerText = footerText
@@ -978,7 +1024,29 @@ function UI:Create()
     self:ApplyTheme()
     self:Refresh()
     self:UpdatePlaceholder()
+    self:RenderHistory()
 
+    return frame
+end
+
+function UI:RenderHistory()
+    if not self.historyFrame then
+        return
+    end
+    local prevOffset = self.historyFrame.GetScrollOffset and self.historyFrame:GetScrollOffset() or 0
+    local preservedId = nil
+    local preservedSnippet = nil
+    if self.copyDialog and self.copyDialog:IsShown() and self.copyDialog.currentSnippetId then
+        preservedId = self.copyDialog.currentSnippetId
+        preservedSnippet = self.macroSnippets and self.macroSnippets[preservedId] or nil
+    end
+
+    self.macroSnippets = {}
+    if preservedId and preservedSnippet then
+        self.macroSnippets[preservedId] = preservedSnippet
+    end
+
+    self:Clear()
     if ns.db and type(ns.db.history) == "table" and #ns.db.history > 0 then
         for _, entry in ipairs(ns.db.history) do
             if type(entry) == "table" and entry.text then
@@ -989,7 +1057,28 @@ function UI:Create()
         self:AddMessage("jiny", ns.L.WELCOME)
     end
 
-    return frame
+    if prevOffset > 0 and self.historyFrame.SetScrollOffset then
+        self.historyFrame:SetScrollOffset(prevOffset)
+    end
+end
+
+function UI:SetTheme(themeName)
+    local resolved = "ParchmentLight"
+    if ns.Themes and type(ns.Themes.Resolve) == "function" then
+        resolved = ns.Themes:Resolve(themeName) or ns.Themes.default or "ParchmentLight"
+    elseif type(themeName) == "string" and themeName ~= "" then
+        resolved = themeName
+    end
+    if ns.db then
+        ns.db.theme = resolved
+    end
+    if not self.frame then
+        return resolved
+    end
+    self:ApplyTheme()
+    self:Refresh()
+    self:RenderHistory()
+    return resolved
 end
 
 function UI:ApplyTheme()
@@ -1093,6 +1182,17 @@ function UI:Refresh()
     if self.syncBtn and self.syncBtn.label then
         self.syncBtn.label:SetText(ns.L.BTN_SYNC)
         self.syncBtn:SetWidth(math.max(64, math.ceil(self.syncBtn.label:GetStringWidth()) + 16))
+    end
+    if self.themeBtn and self.themeBtn.label then
+        local activeTheme = "ParchmentLight"
+        if ns.Themes and type(ns.Themes.Resolve) == "function" then
+            activeTheme = ns.Themes:Resolve(ns.db and ns.db.theme) or ns.Themes.default or "ParchmentLight"
+        elseif ns.db and ns.db.theme then
+            activeTheme = ns.db.theme
+        end
+        local themeLabel = ns.L["THEME_" .. activeTheme] or activeTheme
+        self.themeBtn.label:SetText(ns.L.BTN_THEME .. ": " .. themeLabel)
+        self.themeBtn:SetWidth(math.max(84, math.ceil(self.themeBtn.label:GetStringWidth()) + 16))
     end
     if self.footerText then
         self.footerText:SetText(ns.L.FOOTER)
