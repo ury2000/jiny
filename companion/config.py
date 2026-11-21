@@ -133,6 +133,7 @@ def _pick_bool(env_name: str, raw_value: object, default: bool) -> bool:
     return _parse_bool(raw_value, default=default)
 
 
+<<<<<<< HEAD
 def _parse_finite_float(
     value: object,
     default: float,
@@ -189,6 +190,8 @@ def _parse_bounded_int(
     return max(min_val, min(max_val, parsed))
 
 
+=======
+>>>>>>> b206aed (fix(v0.4): reject non-finite OAuth expiry and empty boolean env overrides)
 def load_config(config_path: Path | None = None) -> CompanionConfig:
     path = config_path or DEFAULT_CONFIG_PATH
     raw: dict = {}

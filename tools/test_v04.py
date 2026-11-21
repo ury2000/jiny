@@ -266,6 +266,52 @@ class TestConfigAndVersion(unittest.TestCase):
             self.assertEqual(cfg_zero.tts_rate, 0)
             self.assertEqual(cfg_zero.tts_volume, 0)
 
+    def test_load_config_empty_boolean_env_preserves_json_and_ollama_timeout_whitespace(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg_path = Path(tmp) / "config.json"
+            cfg_path.write_text(
+                json.dumps(
+                    {
+                        "wow_forever_dir": tmp,
+                        "vertexai": True,
+                        "tts_enabled": True,
+                        "overlay_enabled": True,
+                        "overlay_always_on_top": False,
+                        "ollama_timeout": "   ",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with mock.patch.dict(
+                os.environ,
+                {
+                    "JINY_VERTEXAI": "",
+                    "JINY_TTS_ENABLED": "",
+                    "JINY_OVERLAY_ENABLED": "   ",
+                    "JINY_OVERLAY_ALWAYS_ON_TOP": "",
+                    "JINY_OLLAMA_TIMEOUT": "",
+                },
+                clear=False,
+            ):
+                cfg = load_config(cfg_path)
+            self.assertTrue(cfg.vertexai)
+            self.assertTrue(cfg.tts_enabled)
+            self.assertTrue(cfg.overlay_enabled)
+            self.assertFalse(cfg.overlay_always_on_top)
+            self.assertEqual(cfg.ollama_timeout, 60.0)
+
+            with mock.patch.dict(
+                os.environ,
+                {
+                    "JINY_TTS_ENABLED": "false",
+                    "JINY_OVERLAY_ALWAYS_ON_TOP": "true",
+                },
+                clear=False,
+            ):
+                cfg_override = load_config(cfg_path)
+            self.assertFalse(cfg_override.tts_enabled)
+            self.assertTrue(cfg_override.overlay_always_on_top)
+
 
 class TestProvidersOffline(unittest.TestCase):
     def _base_cfg(self, tmp: str, **overrides) -> CompanionConfig:
@@ -495,6 +541,37 @@ class TestProvidersOffline(unittest.TestCase):
             self.assertEqual(favicon_status, [404])
             self.assertEqual(callback_status, [200])
             self.assertEqual(tok.access_token, "tok-loopback")
+
+    def test_oauth_rejects_non_finite_and_bool_expiry_and_save_disallows_nan(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            token_path = Path(tmp) / "oauth_token.json"
+            mgr = OAuthManager(client_id="cid-finite", token_path=token_path)
+            invalid_values = ["NaN", float("nan"), "inf", "-inf", float("inf"), float("-inf"), True, False]
+
+            for bad in invalid_values:
+                with self.subTest(method="from_dict", bad=bad):
+                    with self.assertRaises(OAuthError):
+                        OAuthToken.from_dict({"access_token": "tok-abc", "expires_at": bad})
+
+                with self.subTest(method="_token_from_response_expires_at", bad=bad):
+                    with self.assertRaises(OAuthError):
+                        mgr._token_from_response({"access_token": "tok-abc", "expires_at": bad})
+
+                with self.subTest(method="_token_from_response_expires_in", bad=bad):
+                    with self.assertRaises(OAuthError):
+                        mgr._token_from_response({"access_token": "tok-abc", "expires_in": bad})
+
+            store = OAuthTokenStore(token_path)
+            for bad_num in (float("nan"), float("inf"), float("-inf")):
+                with self.assertRaises(OAuthError):
+                    store.save(OAuthToken(access_token="tok-abc", expires_at=bad_num))
+                self.assertFalse(token_path.exists())
+
+            # Out-of-range finite timestamp in Vertex client construction raises ProviderError cleanly
+            store.save(OAuthToken(access_token="tok-abc", expires_at=1e20))
+            v_provider = GeminiOAuthProvider(oauth_manager=mgr, vertexai=True, gcp_project="proj-1")
+            with self.assertRaises(ProviderError):
+                v_provider._get_vertex_client()
 
     def test_oauth_provider_bearer_and_vertex_modes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

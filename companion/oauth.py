@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+import math
 import os
 from pathlib import Path
 import secrets
@@ -101,6 +102,19 @@ def load_client_secrets_file(path: Path) -> dict[str, str]:
     }
 
 
+def _parse_finite_float(raw: Any, field_name: str) -> float:
+    """Parse a finite float, rejecting booleans, NaN, and +/-inf with OAuthError."""
+    if isinstance(raw, bool):
+        raise OAuthError(f"Invalid '{field_name}' in OAuth payload.")
+    try:
+        val = float(raw)
+    except (TypeError, ValueError) as exc:
+        raise OAuthError(f"Invalid '{field_name}' in OAuth payload.") from exc
+    if not math.isfinite(val):
+        raise OAuthError(f"Invalid '{field_name}' in OAuth payload.")
+    return val
+
+
 @dataclass
 class OAuthToken:
     """Stored OAuth 2.0 token bundle (sensitive fields hidden from repr)."""
@@ -143,10 +157,7 @@ class OAuthToken:
         expires_raw = data.get("expires_at")
         expires_at: Optional[float] = None
         if expires_raw is not None:
-            try:
-                expires_at = float(expires_raw)
-            except (TypeError, ValueError) as exc:
-                raise OAuthError("Invalid 'expires_at' in OAuth token payload.") from exc
+            expires_at = _parse_finite_float(expires_raw, "expires_at")
         refresh_token = data.get("refresh_token")
         scope = data.get("scope")
         id_token = data.get("id_token")
@@ -178,7 +189,10 @@ class OAuthTokenStore:
     def save(self, token: OAuthToken) -> Path:
         self.token_path.parent.mkdir(parents=True, exist_ok=True)
         tmp_path = self.token_path.with_suffix(self.token_path.suffix + ".tmp")
-        serialized = json.dumps(token.to_dict(), indent=2, sort_keys=True) + "\n"
+        try:
+            serialized = json.dumps(token.to_dict(), indent=2, sort_keys=True, allow_nan=False) + "\n"
+        except (TypeError, ValueError) as exc:
+            raise OAuthError(f"Cannot serialize OAuth token to JSON: {exc}") from exc
         tmp_path.write_text(serialized, encoding="utf-8")
         os.replace(tmp_path, self.token_path)
         try:
@@ -267,16 +281,12 @@ class OAuthManager:
 
         expires_at: Optional[float] = None
         if payload.get("expires_in") is not None:
-            try:
-                expires_in = float(payload["expires_in"])
-                expires_at = self._clock() + expires_in
-            except (TypeError, ValueError) as exc:
-                raise OAuthError("Invalid 'expires_in' in OAuth token response.") from exc
+            expires_in = _parse_finite_float(payload["expires_in"], "expires_in")
+            expires_at = self._clock() + expires_in
+            if not math.isfinite(expires_at):
+                raise OAuthError("Invalid 'expires_in' in OAuth payload.")
         elif payload.get("expires_at") is not None:
-            try:
-                expires_at = float(payload["expires_at"])
-            except (TypeError, ValueError) as exc:
-                raise OAuthError("Invalid 'expires_at' in OAuth token response.") from exc
+            expires_at = _parse_finite_float(payload["expires_at"], "expires_at")
 
         refresh_raw = payload.get("refresh_token")
         refresh_token = str(refresh_raw).strip() if refresh_raw else fallback_refresh_token

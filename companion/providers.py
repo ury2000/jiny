@@ -276,7 +276,10 @@ class GeminiOAuthProvider(LLMProvider):
 
             expiry = None
             if stored and stored.expires_at is not None:
-                expiry = datetime.fromtimestamp(stored.expires_at, tz=timezone.utc).replace(tzinfo=None)
+                try:
+                    expiry = datetime.fromtimestamp(stored.expires_at, tz=timezone.utc).replace(tzinfo=None)
+                except (TypeError, ValueError, OverflowError, OSError) as exc:
+                    raise ProviderError(f"Invalid OAuth token expiry timestamp: {exc}") from exc
 
             creds = Credentials(
                 token=token,
