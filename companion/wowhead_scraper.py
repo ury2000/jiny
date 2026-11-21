@@ -10,6 +10,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .rag_schema import (
+    CLASSIC_DUNGEON_ALIASES,
     CLASSIC_DUNGEONS_WHITELIST,
     CLASSIC_ERA_VERSION,
     ClassicScopeError,
@@ -25,36 +26,36 @@ from .rag_schema import (
 
 USER_AGENT = "JinyClassicForeverCompanion/0.3 (+https://www.wowhead.com/classic)"
 
-KNOWN_CLASSIC_DUNGEON_IDS = frozenset(
-    {
-        209,
-        491,
-        717,
-        718,
-        719,
-        721,
-        722,
-        796,
-        1176,
-        1337,
-        1477,
-        1581,
-        1583,
-        1584,
-        1977,
-        2017,
-        2057,
-        2100,
-        2159,
-        2437,
-        2557,
-        2677,
-        2717,
-        3428,
-        3429,
-        3456,
-    }
-)
+KNOWN_CLASSIC_DUNGEON_NAMES: dict[int, str] = {
+    209: "Shadowfang Keep",
+    491: "Razorfen Kraul",
+    717: "The Stockade",
+    718: "Wailing Caverns",
+    719: "Blackfathom Deeps",
+    721: "Gnomeregan",
+    722: "Razorfen Downs",
+    796: "Scarlet Monastery",
+    1176: "Zul'Farrak",
+    1337: "Uldaman",
+    1477: "The Temple of Atal'Hakkar",
+    1581: "The Deadmines",
+    1583: "Upper Blackrock Spire",
+    1584: "Blackrock Depths",
+    1977: "Zul'Gurub",
+    2017: "Stratholme",
+    2057: "Scholomance",
+    2100: "Maraudon",
+    2159: "Onyxia's Lair",
+    2437: "Ragefire Chasm",
+    2557: "Dire Maul",
+    2677: "Blackwing Lair",
+    2717: "Molten Core",
+    3428: "Temple of Ahn'Qiraj",
+    3429: "Ruins of Ahn'Qiraj",
+    3456: "Naxxramas",
+}
+
+KNOWN_CLASSIC_DUNGEON_IDS = frozenset(KNOWN_CLASSIC_DUNGEON_NAMES.keys())
 
 _CANONICAL_LINK_RE = re.compile(
     r"""<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']""",
@@ -63,6 +64,10 @@ _CANONICAL_LINK_RE = re.compile(
 _TITLE_TAG_RE = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
 _H1_RE = re.compile(r"<h1[^>]*>(.*?)</h1>", re.IGNORECASE | re.DOTALL)
 _TAG_STRIP_RE = re.compile(r"<[^>]+>")
+_CHROME_STRIP_RE = re.compile(
+    r"<(nav|footer|header|aside|script|style)\b[^>]*>.*?</\1>",
+    re.IGNORECASE | re.DOTALL,
+)
 
 
 class ScraperError(Exception):
@@ -204,6 +209,15 @@ def _js_object_to_json(js_literal: str) -> Any:
                 last_sig = ":"
                 continue
 
+        # Unquoted numeric object key before ':' (e.g. {14: [...]})
+        if ch.isdigit() and last_sig in ("", "{", ","):
+            m_num = re.match(r"(\d+)\s*:", js_literal[i:])
+            if m_num:
+                out.append(f'"{m_num.group(1)}":')
+                i += len(m_num.group(0))
+                last_sig = ":"
+                continue
+
         out.append(ch)
         if not ch.isspace():
             last_sig = ch
@@ -237,27 +251,7 @@ def _extract_gatherer_entries(html_text: str) -> list[dict[str, Any]]:
 
 
 def _extract_mapper_coords(html_text: str) -> tuple[float | None, float | None]:
-    m = re.search(r"g_mapperData\s*(?:\[\s*\d+\s*\])?\s*=\s*", html_text)
-    if not m:
-        return None, None
-    start = m.end()
-    if start >= len(html_text):
-        return None, None
-    open_ch = html_text[start]
-    if open_ch not in ("{", "["):
-        return None, None
-    close_ch = "}" if open_ch == "{" else "]"
-    block = _extract_balanced(html_text, start, open_ch, close_ch)
-    if not block:
-        return None, None
-    try:
-        parsed = _js_object_to_json(block)
-    except Exception:
-        return None, None
-
-    pairs: list[tuple[float, float]] = []
-
-    def _walk(node: Any) -> None:
+    def _walk(node: Any, pairs: list[tuple[float, float]]) -> None:
         if isinstance(node, list):
             if (
                 len(node) == 2
@@ -269,18 +263,35 @@ def _extract_mapper_coords(html_text: str) -> tuple[float | None, float | None]:
                 pairs.append((float(node[0]), float(node[1])))
             else:
                 for item in node:
-                    _walk(item)
+                    _walk(item, pairs)
         elif isinstance(node, dict):
             if "coords" in node:
-                _walk(node["coords"])
+                _walk(node["coords"], pairs)
             else:
                 for val in node.values():
-                    _walk(val)
+                    _walk(val, pairs)
 
-    _walk(parsed)
-    if not pairs:
-        return None, None
-    return validate_coords(pairs[0][0], pairs[0][1], label="g_mapperData")
+    for m in re.finditer(r"g_mapperData\s*(?:\[\s*\d+\s*\])?\s*=\s*", html_text):
+        start = m.end()
+        if start >= len(html_text):
+            continue
+        open_ch = html_text[start]
+        if open_ch not in ("{", "["):
+            continue
+        close_ch = "}" if open_ch == "{" else "]"
+        block = _extract_balanced(html_text, start, open_ch, close_ch)
+        if not block:
+            continue
+        try:
+            parsed = _js_object_to_json(block)
+        except Exception:
+            continue
+
+        pairs: list[tuple[float, float]] = []
+        _walk(parsed, pairs)
+        if pairs:
+            return validate_coords(pairs[0][0], pairs[0][1], label="g_mapperData")
+    return None, None
 
 
 def _extract_listviews(html_text: str) -> dict[str, list[dict[str, Any]]]:
@@ -306,13 +317,28 @@ def _guard_html_classic_scope(html_text: str, source_url: str) -> None:
     if m_canon:
         validate_classic_url(m_canon.group(1).strip())
 
-    plain = _strip_html(html_text)
-    non_classic = detect_non_classic_terms(plain)
+    scoped_html = _CHROME_STRIP_RE.sub(" ", html_text or "")
+    plain = _strip_html(scoped_html)
+
+    gatherer_bits: list[str] = []
+    for entry in _extract_gatherer_entries(html_text):
+        gdata = entry.get("data") or {}
+        gname = str(gdata.get("name_enus") or gdata.get("name") or "").strip()
+        if gname:
+            gatherer_bits.append(gname)
+        g_req = gdata.get("reqlevel")
+        if isinstance(g_req, int) and not isinstance(g_req, bool) and g_req > 60:
+            raise ClassicScopeError(
+                f"Scraped entity requires level {g_req} (> 60 Classic Era cap)."
+            )
+
+    scoped_text = f"{plain} {' '.join(gatherer_bits)}".strip()
+    non_classic = detect_non_classic_terms(scoped_text)
     if non_classic:
         raise ClassicScopeError(
             f"Scraped HTML from '{source_url}' contains non-Classic markers: {non_classic}."
         )
-    req_lvl_match = re.search(r"Requires\s+Level\s+(\d+)", plain, re.IGNORECASE)
+    req_lvl_match = re.search(r"Requires\s+Level\s+(\d+)", scoped_text, re.IGNORECASE)
     if req_lvl_match and int(req_lvl_match.group(1)) > 60:
         raise ClassicScopeError(
             f"Scraped entity requires level {req_lvl_match.group(1)} (> 60 Classic Era cap)."
@@ -439,13 +465,19 @@ def _target_entity_type(entity_type: str, entity_id: int, name: str, kv: dict[st
     if etype == "zone":
         lower_name = name.lower()
         if (
-            "players" in kv
-            or entity_id in KNOWN_CLASSIC_DUNGEON_IDS
+            entity_id in KNOWN_CLASSIC_DUNGEON_IDS
             or lower_name in CLASSIC_DUNGEONS_WHITELIST
+            or lower_name in CLASSIC_DUNGEON_ALIASES
             or lower_name in FORBIDDEN_DUNGEONS
+            or "players" in kv
         ):
             return "dungeon"
-        return "dungeon"
+        if lower_name in FORBIDDEN_ZONES:
+            raise ClassicScopeError(f"Zone '{name}' is outside Classic Era 1.15.x.")
+        raise ScraperError(
+            f"Outdoor zone pages ('{name}', zone={entity_id}) are not indexed as Dungeon records; "
+            "use a Classic dungeon/raid, quest, npc, or item URL."
+        )
     return etype
 
 
@@ -571,6 +603,16 @@ def parse_wowhead_html(
         return validate_entity_dict("item", rec).to_dict()
 
     if target_type == "dungeon":
+        canonical_name = name
+        aliases: list[str] = []
+        lower_name = name.lower()
+        if lower_name in CLASSIC_DUNGEON_ALIASES:
+            canonical_name = CLASSIC_DUNGEON_ALIASES[lower_name]
+        elif entity_id in KNOWN_CLASSIC_DUNGEON_NAMES and lower_name not in CLASSIC_DUNGEONS_WHITELIST:
+            canonical_name = KNOWN_CLASSIC_DUNGEON_NAMES[entity_id]
+        if canonical_name.lower() != lower_name:
+            aliases.append(name)
+
         lvl_str = kv.get("level", "60")
         if "-" in lvl_str:
             rmin, rmax = (int(p) for p in lvl_str.split("-", 1))
@@ -578,13 +620,13 @@ def parse_wowhead_html(
             rmin = rmax = int(lvl_str)
         min_lvl = int(kv["min_level"]) if "min_level" in kv else min(rmin, rmax)
         cap = int(kv.get("players", 5))
-        zone = kv.get("zone", name)
+        zone = kv.get("zone", canonical_name)
         if zone.lower() in FORBIDDEN_ZONES:
             raise ClassicScopeError(f"Zone '{zone}' is outside Classic Era 1.15.x.")
         bosses = [str(r.get("name")).strip() for r in listviews.get("bosses", []) if r.get("name")]
         rec = {
             "dungeon_id": entity_id,
-            "name": name,
+            "name": canonical_name,
             "zone": zone,
             "entrance_x": x,
             "entrance_y": y,
@@ -594,9 +636,10 @@ def parse_wowhead_html(
             "player_cap": cap,
             "faction": kv.get("faction", "Both"),
             "bosses": bosses,
+            "aliases": aliases,
             "era_version": CLASSIC_ERA_VERSION,
             "source_url": source_url,
-            "summary": f"Wowhead Classic {cap}-player instance {name} in {zone}.",
+            "summary": f"Wowhead Classic {cap}-player instance {canonical_name} in {zone}.",
         }
         return validate_entity_dict("dungeon", rec).to_dict()
 

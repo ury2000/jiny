@@ -191,8 +191,12 @@ def cmd_watch(
                 print(f"[User #{req_id} ({locale})]: {question}")
                 rag_context: str | None = None
                 if rag_store is not None:
-                    hits = rag_store.retrieve(question, top_k=cfg.rag_top_k)
-                    rag_context = format_rag_context(hits, locale=locale, query=question)
+                    try:
+                        hits = rag_store.retrieve(question, top_k=cfg.rag_top_k)
+                        rag_context = format_rag_context(hits, locale=locale, query=question)
+                    except Exception as rag_exc:
+                        print(f"[Jiny] RAG warning: {rag_exc}")
+                        rag_context = None
                 try:
                     if dry_run or client is None:
                         answer = f"[Dry-Run {cfg.model} | {locale}] {question}"

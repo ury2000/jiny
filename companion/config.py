@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 import json
+import math
 import os
 from pathlib import Path
 import warnings
@@ -96,8 +97,17 @@ def load_config(config_path: Path | None = None) -> CompanionConfig:
     else:
         wow_path = (REPO_ROOT.parent / "_forever_").resolve()
 
-    poll_interval = float(raw.get("poll_interval_seconds", 0.25) or 0.25)
-    poll_interval = max(0.1, min(5.0, poll_interval))
+    raw_poll = raw.get("poll_interval_seconds", 0.25)
+    if isinstance(raw_poll, bool) or raw_poll is None or raw_poll == "":
+        poll_interval = 0.25
+    else:
+        try:
+            poll_interval = float(raw_poll)
+            if not math.isfinite(poll_interval):
+                poll_interval = 0.25
+        except (TypeError, ValueError):
+            poll_interval = 0.25
+    poll_interval = max(0.05, min(5.0, poll_interval))
 
     env_rag_enabled = os.environ.get("JINY_RAG_ENABLED", "").strip()
     rag_enabled = _parse_bool(

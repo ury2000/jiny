@@ -109,6 +109,41 @@ STOPWORDS = frozenset(
     }
 )
 
+DOMAIN_FILLER_TOKENS = frozenset(
+    {
+        "classic",
+        "era",
+        "forever",
+        "vanilla",
+        "wow",
+        "warcraft",
+        "item",
+        "items",
+        "boss",
+        "bosses",
+        "npc",
+        "npcs",
+        "mob",
+        "mobs",
+        "zone",
+        "zones",
+        "dungeon",
+        "dungeons",
+        "quest",
+        "quests",
+        "mision",
+        "misiones",
+        "mazmorra",
+        "mazmorras",
+        "objeto",
+        "objetos",
+        "missione",
+        "missioni",
+        "oggetto",
+        "oggetti",
+    }
+)
+
 BILINGUAL_EXPANSIONS: dict[str, tuple[str, ...]] = {
     "esposa": ("wife", "mankrik"),
     "moglie": ("wife", "mankrik"),
@@ -178,9 +213,9 @@ def tokenize_query(query: str) -> tuple[list[str], list[str]]:
     if not kept:
         return [], []
 
-    meaningful = [tok for tok in kept if tok not in STOPWORDS]
+    meaningful = [tok for tok in kept if tok not in STOPWORDS and tok not in DOMAIN_FILLER_TOKENS]
     if not meaningful:
-        meaningful = list(kept)
+        return [], []
 
     expanded = list(meaningful)
     for tok in meaningful:
@@ -958,6 +993,13 @@ class ClassicRagStore:
 
             name_tokens = set(re.findall(r"[^\W_]+", " ".join(name_and_aliases)))
             doc_tokens = name_tokens | set(re.findall(r"[^\W_]+", normalize_text(f"{cand['zone']} {cand['body']}")))
+
+            has_specific_match = any(
+                tok in doc_tokens or (len(tok) >= 3 and any(dt.startswith(tok) for dt in doc_tokens))
+                for tok in norm_expanded_set
+            )
+            if not has_specific_match:
+                continue
 
             denom = max(1, len(meaningful_tokens))
             matched_name = sum(

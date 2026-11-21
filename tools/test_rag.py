@@ -18,7 +18,7 @@ if str(ROOT) not in sys.path:
 
 from companion.config import load_config
 from companion.gemini_client import JinyGeminiClient
-from companion.main import main as companion_main
+from companion.main import cmd_watch, main as companion_main
 from companion.prompts import (
     apply_rag_context,
     build_grounded_input,
@@ -556,6 +556,262 @@ class TestCompanionCliRagFlows(unittest.TestCase):
                     rc = companion_main(["--config", str(cfg_path), "--status"])
                 self.assertEqual(rc, 0)
                 self.assertIn("RAG enabled", buf.getvalue())
+
+
+class TestGate1Remediations(unittest.TestCase):
+    def test_seed_factual_corrections_and_sorted_ids(self) -> None:
+        seed = json.loads(DEFAULT_SEED_PATH.read_text(encoding="utf-8"))
+
+        quests = {q["quest_id"]: q for q in seed["quests"]}
+        mobs = {m["npc_id"]: m for m in seed["mobs"]}
+        items = {i["item_id"]: i for i in seed["items"]}
+        dungeons = {d["dungeon_id"]: d for d in seed["dungeons"]}
+
+        # Sorted ascending IDs
+        self.assertEqual([q["quest_id"] for q in seed["quests"]], sorted(quests))
+        self.assertEqual([m["npc_id"] for m in seed["mobs"]], sorted(mobs))
+        self.assertEqual([i["item_id"] for i in seed["items"]], sorted(items))
+        self.assertEqual([d["dungeon_id"] for d in seed["dungeons"]], sorted(dungeons))
+
+        # Deathcharger's Reins Classic Era Req Lvl 60
+        reins = items[13335]
+        self.assertEqual(reins["item_level"], 60)
+        self.assertEqual(reins["req_level"], 60)
+        self.assertIn("Req Lvl 60", reins["summary"])
+        self.assertNotIn("Req Lvl 40", reins["summary"])
+
+        # Gryan Stoutmantle (234) and Marshal Dughan (240)
+        self.assertIn(234, mobs)
+        self.assertEqual(mobs[234]["name"], "Gryan Stoutmantle")
+        self.assertIn(240, mobs)
+        self.assertEqual(mobs[240]["name"], "Marshal Dughan")
+        self.assertNotIn(233, mobs)
+        self.assertEqual(quests[65]["giver"]["npc_id"], 234)
+        self.assertEqual(quests[65]["followup_quest_ids"], [132])
+        self.assertEqual(quests[155]["giver"]["npc_id"], 234)
+        self.assertEqual(quests[155]["turnin"]["npc_id"], 234)
+        self.assertEqual(quests[166]["giver"]["npc_id"], 234)
+        self.assertEqual(quests[166]["turnin"]["npc_id"], 234)
+        self.assertEqual(quests[176]["turnin"]["npc_id"], 240)
+
+        # Quest reward item IDs
+        self.assertEqual(quests[166]["rewards"][0]["item_id"], 6087)
+        self.assertEqual(quests[176]["rewards"][0]["item_id"], 6215)
+
+        # Haleh (10929) & Rexxar (10182, Desolace)
+        self.assertEqual(quests[6502]["giver"]["npc_id"], 10929)
+        self.assertEqual(quests[6502]["turnin"]["npc_id"], 10929)
+        self.assertEqual(quests[6602]["zone"], "Desolace")
+        self.assertEqual(quests[6602]["giver"]["npc_id"], 10182)
+        self.assertEqual(quests[6602]["turnin"]["npc_id"], 10182)
+        self.assertEqual(quests[6602]["turnin"]["name"], "Rexxar")
+        self.assertEqual(quests[6602]["turnin"]["zone"], "Desolace")
+
+        # Bindings of the Windseeker: Baron Geddon = 18563 (Left), Garr = 18564 (Right)
+        self.assertEqual(mobs[12056]["drops"][0]["item_id"], 18563)
+        self.assertIn("Left", mobs[12056]["drops"][0]["item_name"])
+        self.assertEqual(mobs[12057]["drops"][0]["item_id"], 18564)
+        self.assertIn("Right", mobs[12057]["drops"][0]["item_name"])
+
+        # Corrected coordinates and Blackwing Lair NPC reference
+        self.assertEqual((dungeons[3456]["entrance_x"], dungeons[3456]["entrance_y"]), (39.0, 26.0))
+        self.assertEqual((mobs[12397]["x"], mobs[12397]["y"]), (32.5, 48.5))
+        self.assertEqual((dungeons[2017]["entrance_x"], dungeons[2017]["entrance_y"]), (27.0, 11.0))
+        self.assertIn("Eastwall", dungeons[2017]["summary"])
+        self.assertEqual((dungeons[3428]["entrance_x"], dungeons[3428]["entrance_y"]), (29.0, 92.0))
+        self.assertEqual((dungeons[3429]["entrance_x"], dungeons[3429]["entrance_y"]), (29.0, 96.0))
+        self.assertNotIn("Quartermaster Zigris", dungeons[2677]["attunement_or_key"])
+        self.assertIn("Scarshield Quartermaster", dungeons[2677]["attunement_or_key"])
+
+    def test_scope_false_positives_and_boundary_bypasses(self) -> None:
+        # Genuine Classic terms must NOT be falsely rejected
+        for ok_query in (
+            "Goblin Engineering",
+            "Goblin Sapper Charge",
+            "Scarlet Monk",
+            "Where is Dalaran Crater in Alterac Mountains?",
+            "Dalaran Wizard",
+            "Item Level 88 Naxxramas sword",
+            "Level 63 Raid Boss in Molten Core",
+        ):
+            self.assertFalse(is_non_classic_query(ok_query), f"Should allow Classic query: {ok_query}")
+
+        # Non-Classic expansions, classes, races, raids, and >60 player levels MUST be detected
+        for bad_query in (
+            "Best warrior build for MoP",
+            "Cata raid Firelands",
+            "Where to get Level 70 gear",
+            "Nivel 80 Dalaran",
+            "Sunwell Plateau",
+            "Monk class Mistweaver",
+            "Goblin race starting zone",
+            "WoW TBC heroics",
+            "Midnight expansion",
+        ):
+            self.assertTrue(is_non_classic_query(bad_query), f"Should reject non-Classic query: {bad_query}")
+
+        # Boundary bypasses into schema/store MUST raise ClassicScopeError
+        with self.assertRaises(ClassicScopeError):
+            DungeonRecord(dungeon_id=99001, name="Molten Core (TBC)", zone="Blackrock Mountain", player_cap=5)
+        with self.assertRaises(ClassicScopeError):
+            ItemRecord(item_id=99003, name="Sin'dorei Trinket", tags=["blood elf"])
+        with self.assertRaises(ClassicScopeError):
+            MobRecord(npc_id=99004, name="Blood Elf Scout", zone="Elwynn Forest")
+        with self.assertRaises(ClassicScopeError):
+            QuestRecord(quest_id=99002, name="Shadowlands Quest", zone="Val'sharah")
+        with self.assertRaises(ClassicScopeError):
+            QuestRecord(quest_id=99005, name="Bastion Quest", zone="Bastian")
+        with self.assertRaises(ClassicScopeError):
+            ItemRecord(item_id=11684, name="Ironfoe", source_url="https://www.wowhead.com/classic/item=0")
+
+        # Type coercion edge cases in from_dict
+        with self.assertRaises(ClassicScopeError):
+            QuestReward.from_dict({"item_name": "Sample", "quantity": True})
+        with self.assertRaises(ClassicScopeError):
+            QuestRecord.from_dict({"quest_id": 1, "name": "Test", "zone": "Westfall", "reward_xp": None})
+        with self.assertRaises(ClassicScopeError):
+            QuestRecord.from_dict({"quest_id": 1, "name": "Test", "zone": "Westfall", "reward_copper": True})
+
+        # Localized Classic dungeon whitelist
+        loc_brd = DungeonRecord(
+            dungeon_id=1584,
+            name="Sotterranei di Roccianera",
+            zone="Burning Steppes",
+            min_level=48,
+            rec_level_min=52,
+            rec_level_max=60,
+            player_cap=5,
+        )
+        self.assertEqual(loc_brd.name, "Sotterranei di Roccianera")
+
+    def test_fts5_filler_abstention_and_specific_matching(self) -> None:
+        with ClassicRagStore(db_path=":memory:", auto_build=True) as store:
+            self.assertEqual(store.retrieve("Donde cae Shadowfang en Classic Era?"), [])
+            self.assertEqual(store.retrieve("Where is Pendulum of Doom in Classic?"), [])
+            self.assertEqual(store.retrieve("Classic Era forever quests"), [])
+
+            # Specific Classic queries still retrieve accurately even with filler words
+            brd_hits = store.retrieve("Classic Blackrock Depths", top_k=3)
+            self.assertTrue(brd_hits)
+            self.assertEqual(brd_hits[0].entity_id, 1584)
+
+            ironfoe_hits = store.retrieve("Ironfoe", top_k=3)
+            self.assertTrue(ironfoe_hits)
+            self.assertEqual(ironfoe_hits[0].entity_id, 11684)
+
+            # Goblin Engineering / Goblin Sapper Charge must NOT trigger NON_CLASSIC_SCOPE
+            goblin_eng_hits = store.retrieve("Goblin Engineering", top_k=3)
+            self.assertEqual(goblin_eng_hits, [])
+            eng_ctx = format_rag_context(goblin_eng_hits, locale="enUS", query="Goblin Engineering")
+            self.assertIn("STATUS: NO_LOCAL_RAG_MATCH", eng_ctx)
+            self.assertNotIn("NON_CLASSIC_SCOPE", eng_ctx)
+
+            sapper_hits = store.retrieve("Goblin Sapper Charge", top_k=3)
+            sapper_ctx = format_rag_context(sapper_hits, locale="enUS", query="Goblin Sapper Charge")
+            self.assertNotIn("NON_CLASSIC_SCOPE", sapper_ctx)
+
+    def test_scraper_js_mapper_localized_zone_and_chrome_scoping(self) -> None:
+        # 1. Numeric unquoted keys in g_mapperData = {14: ...}
+        npc_html = (
+            "<h1>Mankrik</h1><div>Zone: The Barrens Level: 15</div>"
+            "<script>var g_mapperData = {14: [{uiMapId: 1413, coords: [[52.1, 31.6]]}]};</script>"
+        )
+        etype, rec = scrape_entity("https://www.wowhead.com/classic/npc=3432", fetcher=lambda _u: npc_html)
+        self.assertEqual(etype, "mob")
+        self.assertEqual((rec["x"], rec["y"]), (52.1, 31.6))
+
+        # 2. Multi-statement var g_mapperData = {}; g_mapperData[17] = ...
+        quest_html = (
+            "<h1>Lost in Battle</h1><div>Zone: The Barrens Level: 20 Min Level: 14</div>"
+            "<script>var g_mapperData = {}; g_mapperData[17] = [{coords: [[49.3, 50.4]]}];</script>"
+        )
+        qtype, qrec = scrape_entity("https://www.wowhead.com/classic/quest=4921", fetcher=lambda _u: quest_html)
+        self.assertEqual(qtype, "quest")
+        self.assertEqual((qrec["x"], qrec["y"]), (49.3, 50.4))
+
+        # 3. Localized /classic/it/zone=1584/sotterranei-di-roccianera
+        it_brd_html = (
+            "<h1>Sotterranei di Roccianera</h1>"
+            "<div>Zone: Burning Steppes Level: 52-60 Players: 5</div>"
+        )
+        dtype, drec = scrape_entity(
+            "https://www.wowhead.com/classic/it/zone=1584/sotterranei-di-roccianera",
+            fetcher=lambda _u: it_brd_html,
+        )
+        self.assertEqual(dtype, "dungeon")
+        self.assertEqual(drec["name"], "Blackrock Depths")
+        self.assertIn("Sotterranei di Roccianera", drec["aliases"])
+
+        # 4. Non-dungeon outdoor Classic zone raises clean ScraperError
+        durotar_html = "<h1>Durotar</h1><div>Zone: Durotar</div>"
+        with self.assertRaises(ScraperError):
+            scrape_entity("https://www.wowhead.com/classic/zone=14/durotar", fetcher=lambda _u: durotar_html)
+
+        # 5. <nav> expansion switcher does NOT false-reject valid Classic page
+        chrome_html = (
+            "<html><head><title>Goblin Jumper Cables - Item</title></head><body>"
+            "<nav>Switch to Season of Discovery or TBC or WotLK</nav>"
+            "<h1>Goblin Jumper Cables</h1><div>Binds when equipped. Requires Level 35.</div>"
+            "<footer>Retail footer</footer></body></html>"
+        )
+        itype, irec = scrape_entity(
+            "https://www.wowhead.com/classic/item=7148",
+            fetcher=lambda _u: chrome_html,
+        )
+        self.assertEqual(itype, "item")
+        self.assertEqual(irec["name"], "Goblin Jumper Cables")
+
+    def test_config_poll_interval_guard_and_cmd_watch_rag_resilience(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            cfg_bad_poll = tmp_path / "bad_poll.json"
+            cfg_bad_poll.write_text(json.dumps({"poll_interval_seconds": "abc"}), encoding="utf-8")
+            self.assertEqual(load_config(cfg_bad_poll).poll_interval_seconds, 0.25)
+
+            cfg_low_poll = tmp_path / "low_poll.json"
+            cfg_low_poll.write_text(json.dumps({"poll_interval_seconds": 0.01}), encoding="utf-8")
+            self.assertEqual(load_config(cfg_low_poll).poll_interval_seconds, 0.05)
+
+            # cmd_watch resilience when rag_store.retrieve raises RuntimeError
+            wow_dir = tmp_path / "_forever_"
+            logs_dir = wow_dir / "Logs"
+            logs_dir.mkdir(parents=True)
+            (logs_dir / "WoWChatLog.txt").write_text(
+                "11/21 20:31:01.000  To [Azok]: [JINY_Q#w99#esES] Ironfoe?\n",
+                encoding="utf-8",
+            )
+            lua_out = tmp_path / "CompanionData.lua"
+            cfg_watch = tmp_path / "watch.json"
+            cfg_watch.write_text(
+                json.dumps(
+                    {
+                        "api_key": "",
+                        "wow_forever_dir": str(wow_dir),
+                        "poll_interval_seconds": 0.05,
+                        "rag_enabled": True,
+                        "rag_db_path": str(tmp_path / "watch_rag.db"),
+                        "rag_seed_path": str(DEFAULT_SEED_PATH),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            cfg = load_config(cfg_watch)
+
+            fake_client = JinyGeminiClient(api_key="dummy", client=_FakeGenAIClient())
+            buf = io.StringIO()
+            with (
+                patch("companion.main.JinyGeminiClient", return_value=fake_client),
+                patch("companion.main._resolve_target_paths", return_value=[lua_out]),
+                patch("companion.rag_store.ClassicRagStore.retrieve", side_effect=RuntimeError("Simulated RAG DB error")),
+                patch("companion.main.time.sleep", side_effect=KeyboardInterrupt),
+                redirect_stdout(buf),
+            ):
+                rc = cmd_watch(cfg, start_from_beginning=True, no_rag=False, dry_run=False)
+
+            self.assertEqual(rc, 0)
+            self.assertIn("[Jiny] RAG warning: Simulated RAG DB error", buf.getvalue())
+            self.assertTrue(lua_out.exists())
+            self.assertIn("w99", lua_out.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

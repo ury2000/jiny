@@ -81,6 +81,10 @@ CLASSIC_PROFESSIONS = frozenset(
 
 CLASSIC_ZONES = frozenset(
     {
+        # Continents / Broad Classic Regions
+        "azeroth",
+        "eastern kingdoms",
+        "kalimdor",
         # Eastern Kingdoms
         "alterac mountains",
         "arathi highlands",
@@ -131,6 +135,10 @@ CLASSIC_ZONES = frozenset(
         "thunder bluff",
         "un'goro crater",
         "winterspring",
+        # Classic Battlegrounds
+        "alterac valley",
+        "arathi basin",
+        "warsong gulch",
         # Classic Dungeon / Raid zone names
         "ragefire chasm",
         "wailing caverns",
@@ -139,9 +147,14 @@ CLASSIC_ZONES = frozenset(
         "shadowfang keep",
         "blackfathom deeps",
         "the stockade",
+        "stockade",
         "gnomeregan",
         "razorfen kraul",
         "scarlet monastery",
+        "scarlet monastery graveyard",
+        "scarlet monastery library",
+        "scarlet monastery armory",
+        "scarlet monastery cathedral",
         "razorfen downs",
         "uldaman",
         "zul'farrak",
@@ -154,6 +167,9 @@ CLASSIC_ZONES = frozenset(
         "lower blackrock spire",
         "upper blackrock spire",
         "dire maul",
+        "dire maul east",
+        "dire maul west",
+        "dire maul north",
         "stratholme",
         "scholomance",
         "zul'gurub",
@@ -162,9 +178,60 @@ CLASSIC_ZONES = frozenset(
         "onyxia's lair",
         "blackwing lair",
         "temple of ahn'qiraj",
+        "ahn'qiraj",
         "naxxramas",
     }
 )
+
+CLASSIC_DUNGEON_ALIASES: dict[str, str] = {
+    "sima ignea": "Ragefire Chasm",
+    "baratro di fiamma": "Ragefire Chasm",
+    "cuevas de los lamentos": "Wailing Caverns",
+    "caverne dei lamenti": "Wailing Caverns",
+    "minas de la muerte": "The Deadmines",
+    "las minas de la muerte": "The Deadmines",
+    "le miniere della morte": "The Deadmines",
+    "miniere della morte": "The Deadmines",
+    "castillo de colmillo oscuro": "Shadowfang Keep",
+    "forte di zannascura": "Shadowfang Keep",
+    "cavernas de brazanegra": "Blackfathom Deeps",
+    "abissi di fondoscuro": "Blackfathom Deeps",
+    "las mazmorras": "The Stockade",
+    "segrete di roccavento": "The Stockade",
+    "monasterio escarlata": "Scarlet Monastery",
+    "monastero scarlatto": "Scarlet Monastery",
+    "horado rajacieno": "Razorfen Kraul",
+    "lamaspina": "Razorfen Kraul",
+    "zahurda rajacieno": "Razorfen Downs",
+    "sotterranei di lamaspina": "Razorfen Downs",
+    "templo de atal'hakkar": "The Temple of Atal'Hakkar",
+    "templo sumergido": "Sunken Temple",
+    "tempio di atal'hakkar": "The Temple of Atal'Hakkar",
+    "tempio sommerso": "Sunken Temple",
+    "profundidades de roca negra": "Blackrock Depths",
+    "sotterranei di roccianera": "Blackrock Depths",
+    "profondita di roccianera": "Blackrock Depths",
+    "profondità di roccianera": "Blackrock Depths",
+    "cumbre de roca negra": "Blackrock Spire",
+    "bastioni di roccianera": "Blackrock Spire",
+    "cumbre de roca negra inferior": "Lower Blackrock Spire",
+    "bastioni di roccianera inferiori": "Lower Blackrock Spire",
+    "cumbre de roca negra superior": "Upper Blackrock Spire",
+    "bastioni di roccianera superiori": "Upper Blackrock Spire",
+    "la masacre": "Dire Maul",
+    "maglio infausto": "Dire Maul",
+    "guarida de onyxia": "Onyxia's Lair",
+    "antro di onyxia": "Onyxia's Lair",
+    "nucleo de magma": "Molten Core",
+    "núcleo de magma": "Molten Core",
+    "nucleo ardente": "Molten Core",
+    "guarida alanegra": "Blackwing Lair",
+    "fortezza dell'ala nera": "Blackwing Lair",
+    "ruinas de ahn'qiraj": "Ruins of Ahn'Qiraj",
+    "rovine di ahn'qiraj": "Ruins of Ahn'Qiraj",
+    "templo de ahn'qiraj": "Temple of Ahn'Qiraj",
+    "tempio di ahn'qiraj": "Temple of Ahn'Qiraj",
+}
 
 CLASSIC_DUNGEONS_WHITELIST = frozenset(
     {
@@ -378,34 +445,57 @@ FORBIDDEN_DUNGEONS = frozenset(
     }
 )
 
+_FORBIDDEN_NON_CLASSIC_RACES = frozenset(
+    race for race in FORBIDDEN_RACES if race != "goblin"
+) | frozenset({"goblin race", "play as goblin", "playable goblin", "bilgewater"})
+
+_NON_CLASSIC_CLASS_PHRASES = frozenset(
+    cls_name for cls_name in FORBIDDEN_CLASSES if cls_name != "monk"
+) | frozenset({"monk class", "mistweaver", "windwalker", "brewmaster", "play as monk"})
+
+_EXTRA_EXPANSION_RAIDS_ZONES = frozenset(
+    {
+        "firelands",
+        "sunwell",
+        "val'sharah",
+        "bastion",
+        "suramar",
+        "argus",
+        "revendreth",
+        "maldraxxus",
+        "ardenweald",
+        "zereth mortis",
+        "dragon soul",
+        "throne of thunder",
+        "siege of orgrimmar",
+        "blackrock foundry",
+        "emerald nightmare",
+        "nighthold",
+        "antorus",
+        "ny'alotha",
+        "castle nathria",
+    }
+)
+
 _NON_CLASSIC_QUERY_PHRASES = tuple(
     sorted(
         FORBIDDEN_ZONES
         | FORBIDDEN_DUNGEONS
-        | FORBIDDEN_CLASSES
-        | FORBIDDEN_RACES
+        | _NON_CLASSIC_CLASS_PHRASES
+        | _FORBIDDEN_NON_CLASSIC_RACES
         | FORBIDDEN_PROFESSIONS
-        | {
-            "burning crusade",
-            "wrath of the lich king",
-            "wotlk",
-            "cataclysm",
-            "mists of pandaria",
-            "warlords of draenor",
-            "battle for azeroth",
-            "shadowlands",
-            "dragonflight",
-            "the war within",
-            "season of discovery",
-            "tbc",
-            "retail",
-        },
+        | FORBIDDEN_EXPANSION_TAGS
+        | _EXTRA_EXPANSION_RAIDS_ZONES,
         key=len,
         reverse=True,
     )
 )
 
 _NON_CLASSIC_URL_MARKERS = ("/tbc/", "/wotlk/", "/cata/", "/mop-classic/", "/classic-tbc/", "/retail/")
+_POST_60_LEVEL_RE = re.compile(
+    r"(?<![a-z0-9])(?:level|lvl|nivel|livello)\s+(?:6[1-9]|[7-9]\d|1\d\d)(?![a-z0-9])"
+)
+_DALARAN_CLASSIC_RE = re.compile(r"(?<![a-z0-9])dalaran\s+(?:crater|wizards?)(?![a-z0-9])")
 
 
 class ClassicScopeError(ValueError):
@@ -422,14 +512,29 @@ def detect_non_classic_terms(text: str | None) -> list[str]:
     if not raw:
         return []
     lower = _norm(raw)
+    dalaran_masked = _DALARAN_CLASSIC_RE.sub(" ", lower)
     found: list[str] = []
     for marker in _NON_CLASSIC_URL_MARKERS:
         if marker in lower and marker not in found:
             found.append(marker)
     for phrase in _NON_CLASSIC_QUERY_PHRASES:
+        haystack = dalaran_masked if phrase == "dalaran" else lower
         pattern = r"(?<![a-z0-9])" + re.escape(phrase) + r"(?![a-z0-9])"
-        if re.search(pattern, lower) and phrase not in found:
+        if re.search(pattern, haystack) and phrase not in found:
             found.append(phrase)
+    for m in _POST_60_LEVEL_RE.finditer(lower):
+        prefix = lower[max(0, m.start() - 8) : m.start()]
+        if prefix.endswith("item "):
+            continue
+        suffix = lower[m.end() : m.end() + 16]
+        lvl_num = int(re.search(r"\d+", m.group(0)).group(0))  # type: ignore[union-attr]
+        if lvl_num <= CLASSIC_MAX_BOSS_LEVEL and re.match(
+            r"\s+(?:raid\s+|world\s+)?(?:boss|elite)\b", suffix
+        ):
+            continue
+        term = m.group(0)
+        if term not in found:
+            found.append(term)
     return found
 
 
@@ -464,7 +569,15 @@ def validate_source_url(url: str | None) -> str:
             raise ClassicScopeError(
                 f"Non-Classic Wowhead URL rejected ({forbidden}): '{candidate}'."
             )
-    if WOWHEAD_CLASSIC_URL_RE.match(candidate) or WOWHEAD_TOOLTIP_URL_RE.match(candidate):
+    m_main = WOWHEAD_CLASSIC_URL_RE.match(candidate)
+    if m_main:
+        if int(m_main.group(2)) <= 0:
+            raise ClassicScopeError(f"Invalid source_url '{candidate}'; entity ID must be > 0.")
+        return candidate
+    m_tip = WOWHEAD_TOOLTIP_URL_RE.match(candidate)
+    if m_tip:
+        if int(m_tip.group(2)) <= 0:
+            raise ClassicScopeError(f"Invalid source_url '{candidate}'; entity ID must be > 0.")
         return candidate
     raise ClassicScopeError(
         f"Invalid source_url '{candidate}'; external URLs must be HTTPS wowhead.com/classic/... links."
@@ -539,27 +652,42 @@ def _reject_forbidden_name(value: str, field_name: str) -> None:
         raise ClassicScopeError(f"{field_name} '{value}' belongs to a non-Classic dungeon/raid.")
     if lower in FORBIDDEN_CLASSES:
         raise ClassicScopeError(f"{field_name} '{value}' references a non-Classic class.")
+    if lower in _FORBIDDEN_NON_CLASSIC_RACES:
+        raise ClassicScopeError(f"{field_name} '{value}' references a non-Classic race.")
     if lower in FORBIDDEN_PROFESSIONS:
         raise ClassicScopeError(f"{field_name} '{value}' references a non-Classic profession.")
+    if lower in FORBIDDEN_EXPANSION_TAGS:
+        raise ClassicScopeError(f"{field_name} '{value}' references a non-Classic expansion.")
     for forbidden_zone in FORBIDDEN_ZONES:
         if re.search(r"(?<![a-z0-9])" + re.escape(forbidden_zone) + r"(?![a-z0-9])", lower):
             raise ClassicScopeError(f"{field_name} '{value}' references non-Classic zone '{forbidden_zone}'.")
     for forbidden_dungeon in FORBIDDEN_DUNGEONS:
         if re.search(r"(?<![a-z0-9])" + re.escape(forbidden_dungeon) + r"(?![a-z0-9])", lower):
             raise ClassicScopeError(f"{field_name} '{value}' references non-Classic dungeon '{forbidden_dungeon}'.")
+    for forbidden_race in _FORBIDDEN_NON_CLASSIC_RACES:
+        if re.search(r"(?<![a-z0-9])" + re.escape(forbidden_race) + r"(?![a-z0-9])", lower):
+            raise ClassicScopeError(f"{field_name} '{value}' references non-Classic race '{forbidden_race}'.")
     for forbidden_prof in FORBIDDEN_PROFESSIONS:
         if re.search(r"(?<![a-z0-9])" + re.escape(forbidden_prof) + r"(?![a-z0-9])", lower):
             raise ClassicScopeError(f"{field_name} '{value}' references non-Classic profession '{forbidden_prof}'.")
+    for forbidden_exp in FORBIDDEN_EXPANSION_TAGS:
+        if re.search(r"(?<![a-z0-9])" + re.escape(forbidden_exp) + r"(?![a-z0-9])", lower):
+            raise ClassicScopeError(f"{field_name} '{value}' references non-Classic expansion '{forbidden_exp}'.")
 
 
 def validate_zone(zone: str, allow_empty: bool = False) -> str:
-    """Ensure zone is non-empty (unless allowed) and never a TBC/WotLK/Retail zone."""
+    """Enforce Classic Era 1.15.x zone whitelist (Kalimdor, Eastern Kingdoms, Classic instances)."""
     cleaned = (zone or "").strip()
     if not cleaned:
         if allow_empty:
             return ""
         raise ClassicScopeError("zone cannot be empty.")
     _reject_forbidden_name(cleaned, "zone")
+    lower = _norm(cleaned)
+    if lower not in CLASSIC_ZONES and lower not in CLASSIC_DUNGEON_ALIASES:
+        raise ClassicScopeError(
+            f"Zone '{cleaned}' is not in the Classic Era 1.15.x zone/instance whitelist."
+        )
     return cleaned
 
 
@@ -571,7 +699,12 @@ def validate_tags(tags: Sequence[str]) -> list[str]:
         if not tag:
             continue
         lower = _norm(tag)
-        if lower in FORBIDDEN_EXPANSION_TAGS or lower in FORBIDDEN_CLASSES or lower in FORBIDDEN_PROFESSIONS:
+        if (
+            lower in FORBIDDEN_EXPANSION_TAGS
+            or lower in FORBIDDEN_CLASSES
+            or lower in FORBIDDEN_PROFESSIONS
+            or lower in _FORBIDDEN_NON_CLASSIC_RACES
+        ):
             raise ClassicScopeError(f"Non-Classic tag '{tag}' is forbidden in Classic Era 1.15.x.")
         _reject_forbidden_name(tag, "tag")
         result.append(tag)
@@ -687,7 +820,7 @@ class QuestReward:
         return cls(
             item_name=str(data.get("item_name", "")),
             item_id=data.get("item_id"),
-            quantity=int(data.get("quantity", 1)),
+            quantity=data.get("quantity", 1),
             choice=bool(data.get("choice", False)),
         )
 
@@ -910,8 +1043,8 @@ class QuestRecord:
             turnin=QuestNpcRef.from_dict(turnin_raw) if isinstance(turnin_raw, Mapping) else turnin_raw,
             objectives=list(data.get("objectives", [])),
             rewards=list(data.get("rewards", [])),
-            reward_xp=int(data.get("reward_xp", 0)),
-            reward_copper=int(data.get("reward_copper", 0)),
+            reward_xp=data.get("reward_xp", 0),
+            reward_copper=data.get("reward_copper", 0),
             prerequisite_quest_ids=list(data.get("prerequisite_quest_ids", [])),
             followup_quest_ids=list(data.get("followup_quest_ids", [])),
             class_restriction=list(data.get("class_restriction", [])),
@@ -987,7 +1120,9 @@ class MobRecord:
             )
         self.faction = _validate_faction(self.faction)
         self.x, self.y = validate_coords(self.x, self.y, label="MobRecord.coords")
-        self.subzone = validate_zone(self.subzone, allow_empty=True)
+        self.subzone = (self.subzone or "").strip()
+        if self.subzone:
+            _reject_forbidden_name(self.subzone, "subzone")
         if self.dungeon_id is not None:
             self.dungeon_id = _validate_positive_id(self.dungeon_id, "MobRecord.dungeon_id")
         self.dungeon_name = (self.dungeon_name or "").strip()
@@ -1181,10 +1316,15 @@ def _matches_classic_dungeon_whitelist(name: str) -> bool:
     norm_name = _norm(name)
     if norm_name in FORBIDDEN_DUNGEONS:
         return False
-    if norm_name in CLASSIC_DUNGEONS_WHITELIST:
+    for forbidden_exp in FORBIDDEN_EXPANSION_TAGS:
+        if re.search(r"(?<![a-z0-9])" + re.escape(forbidden_exp) + r"(?![a-z0-9])", norm_name):
+            return False
+    if norm_name in CLASSIC_DUNGEONS_WHITELIST or norm_name in CLASSIC_DUNGEON_ALIASES:
         return True
     base_name = re.split(r"\s*[-–(:]\s*", norm_name, maxsplit=1)[0].strip()
-    return base_name in CLASSIC_DUNGEONS_WHITELIST and base_name not in FORBIDDEN_DUNGEONS
+    return (
+        base_name in CLASSIC_DUNGEONS_WHITELIST or base_name in CLASSIC_DUNGEON_ALIASES
+    ) and base_name not in FORBIDDEN_DUNGEONS
 
 
 @dataclass
