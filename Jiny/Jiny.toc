@@ -1,0 +1,20 @@
+## Interface: 16001
+## Title: |cff2b6cb0Jiny|r
+## Notes: Your friendly Azeroth chat companion. Ask about quests, items and guides. Powered by Gemini & Local AI (companion app required from v0.2).
+## Notes-esES: Tu compañera de chat en Azeroth. Pregunta sobre misiones, objetos y guías. Powered by Gemini & Local AI (companion necesario desde v0.2).
+## Notes-esMX: Tu compañera de chat en Azeroth. Pregunta sobre misiones, objetos y guías. Powered by Gemini & Local AI (companion necesario desde v0.2).
+## Notes-itIT: La tua compagna di chat ad Azeroth. Chiedi di missioni, oggetti e guide. Powered by Gemini & Local AI (companion richiesto dalla v0.2).
+## Author: Tony
+## Version: 0.1.0
+## IconTexture: Interface\AddOns\Jiny\Assets\JinyIcon
+## SavedVariables: JinyDB
+## X-Category: Chat & Communication
+
+Locales\Locale.lua
+Locales\enUS.lua
+Locales\esES.lua
+Locales\itIT.lua
+Themes.lua
+Mock.lua
+UI.lua
+Core.lua
