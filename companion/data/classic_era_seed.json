@@ -1,0 +1,2091 @@
+{
+  "schema_version": 1,
+  "era_version": "1.15.x",
+  "source": "wowhead_classic_1_15",
+  "quests": [
+    {
+      "quest_id": 65,
+      "name": "The Defias Brotherhood",
+      "zone": "Westfall",
+      "faction": "Alliance",
+      "quest_level": 18,
+      "min_level": 14,
+      "x": 56.2,
+      "y": 47.6,
+      "giver": {
+        "name": "Gryan Stoutmantle",
+        "npc_id": 233,
+        "zone": "Westfall",
+        "x": 56.2,
+        "y": 47.6
+      },
+      "turnin": {
+        "name": "Wiley the Black",
+        "npc_id": 266,
+        "zone": "Redridge Mountains",
+        "x": 26.6,
+        "y": 45.3
+      },
+      "objectives": [
+        "Speak with Wiley the Black at the Lakeshire Inn in Redridge Mountains."
+      ],
+      "rewards": [],
+      "reward_xp": 675,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [],
+      "followup_quest_ids": [132, 155, 166],
+      "class_restriction": [],
+      "is_dungeon": false,
+      "dungeon_name": "",
+      "aliases": [
+        "La Hermandad Defias",
+        "La Confraternita dei Defias",
+        "Defias Brotherhood Part 1",
+        "Paramos de Poniente"
+      ],
+      "summary": "Opening step of the iconic Westfall Defias Brotherhood chain starting from Gryan Stoutmantle at Sentinel Hill (56.2, 47.6).",
+      "tags": ["westfall", "defias", "chain", "alliance"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=65/the-defias-brotherhood"
+    },
+    {
+      "quest_id": 155,
+      "name": "The Defias Brotherhood",
+      "zone": "Westfall",
+      "faction": "Alliance",
+      "quest_level": 20,
+      "min_level": 14,
+      "x": 56.2,
+      "y": 47.6,
+      "giver": {
+        "name": "Gryan Stoutmantle",
+        "npc_id": 233,
+        "zone": "Westfall",
+        "x": 56.2,
+        "y": 47.6
+      },
+      "turnin": {
+        "name": "Gryan Stoutmantle",
+        "npc_id": 233,
+        "zone": "Westfall",
+        "x": 56.2,
+        "y": 47.6
+      },
+      "objectives": [
+        "Escort the Defias Traitor from Sentinel Hill to Moonbrook to discover the Deadmines entrance."
+      ],
+      "rewards": [],
+      "reward_xp": 1450,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [142],
+      "followup_quest_ids": [166],
+      "class_restriction": [],
+      "is_dungeon": false,
+      "dungeon_name": "",
+      "aliases": [
+        "La Hermandad Defias escolta",
+        "Defias Traitor escort",
+        "Confraternita dei Defias scorta",
+        "Moonbrook"
+      ],
+      "summary": "Escort quest in Westfall where the Defias Traitor leads players to the secret Moonbrook barn entrance of The Deadmines.",
+      "tags": ["westfall", "escort", "defias", "alliance"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=155/the-defias-brotherhood"
+    },
+    {
+      "quest_id": 166,
+      "name": "The Defias Brotherhood",
+      "zone": "Westfall",
+      "faction": "Alliance",
+      "quest_level": 22,
+      "min_level": 14,
+      "x": 56.2,
+      "y": 47.6,
+      "giver": {
+        "name": "Gryan Stoutmantle",
+        "npc_id": 233,
+        "zone": "Westfall",
+        "x": 56.2,
+        "y": 47.6
+      },
+      "turnin": {
+        "name": "Gryan Stoutmantle",
+        "npc_id": 233,
+        "zone": "Westfall",
+        "x": 56.2,
+        "y": 47.6
+      },
+      "objectives": [
+        "Kill Edwin VanCleef inside The Deadmines and bring the Head of VanCleef to Gryan Stoutmantle."
+      ],
+      "rewards": [
+        {
+          "item_name": "Chausses of Westfall",
+          "item_id": 2037,
+          "quantity": 1,
+          "choice": true
+        },
+        {
+          "item_name": "Tunic of Westfall",
+          "item_id": 2041,
+          "quantity": 1,
+          "choice": true
+        },
+        {
+          "item_name": "Staff of Westfall",
+          "item_id": 2042,
+          "quantity": 1,
+          "choice": true
+        }
+      ],
+      "reward_xp": 2450,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [155],
+      "followup_quest_ids": [],
+      "class_restriction": [],
+      "is_dungeon": true,
+      "dungeon_name": "The Deadmines",
+      "aliases": [
+        "La Hermandad Defias Minas",
+        "La Confraternita dei Defias",
+        "Edwin VanCleef quest",
+        "Minas de la Muerte",
+        "Miniere della Morte"
+      ],
+      "summary": "Finale of The Defias Brotherhood chain: enter The Deadmines in Westfall, defeat Edwin VanCleef, and return to Gryan Stoutmantle (56.2, 47.6).",
+      "tags": ["westfall", "deadmines", "dungeon", "alliance"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=166/the-defias-brotherhood"
+    },
+    {
+      "quest_id": 176,
+      "name": "Wanted: \"Hogger\"",
+      "zone": "Elwynn Forest",
+      "faction": "Alliance",
+      "quest_level": 11,
+      "min_level": 7,
+      "x": 24.6,
+      "y": 74.7,
+      "giver": {
+        "name": "Wanted Poster",
+        "npc_id": null,
+        "zone": "Elwynn Forest",
+        "x": 24.6,
+        "y": 74.7
+      },
+      "turnin": {
+        "name": "Marshal Dughan",
+        "npc_id": 234,
+        "zone": "Elwynn Forest",
+        "x": 42.1,
+        "y": 65.9
+      },
+      "objectives": [
+        "Slay Hogger (Elite Lvl 11) in southwestern Elwynn Forest around (26.2, 92.3) and bring Huge Gnoll Claw to Marshal Dughan in Goldshire."
+      ],
+      "rewards": [
+        {
+          "item_name": "Balanced Fighting Stick",
+          "item_id": 1181,
+          "quantity": 1,
+          "choice": true
+        }
+      ],
+      "reward_xp": 875,
+      "reward_copper": 1200,
+      "prerequisite_quest_ids": [],
+      "followup_quest_ids": [],
+      "class_restriction": [],
+      "is_dungeon": false,
+      "dungeon_name": "",
+      "aliases": [
+        "Se busca: Hogger",
+        "Ricercato: Hogger",
+        "Hogger quest",
+        "Bosque de Elwynn",
+        "Foresta di Elwynn"
+      ],
+      "summary": "Group quest in Elwynn Forest picked up from the Wanted Poster (24.6, 74.7); Hogger spawns at (26.2, 92.3) and turns in to Marshal Dughan in Goldshire (42.1, 65.9).",
+      "tags": ["elwynn", "hogger", "elite", "alliance"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=176/wanted-hogger"
+    },
+    {
+      "quest_id": 1149,
+      "name": "Test of Faith",
+      "zone": "Thousand Needles",
+      "faction": "Horde",
+      "quest_level": 26,
+      "min_level": 25,
+      "x": 54.0,
+      "y": 41.5,
+      "giver": {
+        "name": "Dorn Plainstalker",
+        "npc_id": 4488,
+        "zone": "Thousand Needles",
+        "x": 54.0,
+        "y": 41.5
+      },
+      "turnin": {
+        "name": "Dorn Plainstalker",
+        "npc_id": 4488,
+        "zone": "Thousand Needles",
+        "x": 54.0,
+        "y": 41.5
+      },
+      "objectives": [
+        "Jump off the high cliff platform at The Weathered Nook (54.0, 41.5) in Thousand Needles to prove your faith."
+      ],
+      "rewards": [],
+      "reward_xp": 1550,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [],
+      "followup_quest_ids": [1150],
+      "class_restriction": [],
+      "is_dungeon": false,
+      "dungeon_name": "",
+      "aliases": [
+        "Prueba de fe",
+        "Prova di fede",
+        "Las Mil Agujas",
+        "Millepicchi"
+      ],
+      "summary": "Horde quest in Thousand Needles from Dorn Plainstalker at The Weathered Nook (54.0, 41.5), leading into Test of Endurance (1150).",
+      "tags": ["thousand needles", "horde", "kalimdor"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=1149/test-of-faith"
+    },
+    {
+      "quest_id": 4921,
+      "name": "Lost in Battle",
+      "zone": "The Barrens",
+      "faction": "Horde",
+      "quest_level": 20,
+      "min_level": 14,
+      "x": 52.1,
+      "y": 31.6,
+      "giver": {
+        "name": "Mankrik",
+        "npc_id": 3432,
+        "zone": "The Barrens",
+        "x": 52.1,
+        "y": 31.6
+      },
+      "turnin": {
+        "name": "Mankrik",
+        "npc_id": 3432,
+        "zone": "The Barrens",
+        "x": 52.1,
+        "y": 31.6
+      },
+      "objectives": [
+        "Find Mankrik's Wife (Beaten Corpse) in The Barrens at (49.3, 50.4) in a small hut north of Camp Taurajo and east of the Gold Road."
+      ],
+      "rewards": [],
+      "reward_xp": 1550,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [],
+      "followup_quest_ids": [],
+      "class_restriction": [],
+      "is_dungeon": false,
+      "dungeon_name": "",
+      "aliases": [
+        "Mankrik's Wife",
+        "Esposa de Mankrik",
+        "Perdida en la batalla",
+        "Moglie di Mankrik",
+        "Persa in battaglia",
+        "Los Baldios",
+        "Savane"
+      ],
+      "summary": "Horde quest from Mankrik at The Crossroads (52.1, 31.6) in The Barrens. The Beaten Corpse (Mankrik's Wife) lies at (49.3, 50.4).",
+      "tags": ["barrens", "mankrik", "horde", "kalimdor"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=4921/lost-in-battle"
+    },
+    {
+      "quest_id": 6403,
+      "name": "The Great Masquerade",
+      "zone": "Stormwind City",
+      "faction": "Alliance",
+      "quest_level": 60,
+      "min_level": 55,
+      "x": 80.2,
+      "y": 38.3,
+      "giver": {
+        "name": "Reginald Windsor",
+        "npc_id": 12580,
+        "zone": "Stormwind City",
+        "x": 63.0,
+        "y": 73.0
+      },
+      "turnin": {
+        "name": "Highlord Bolvar Fordragon",
+        "npc_id": 1748,
+        "zone": "Stormwind City",
+        "x": 80.2,
+        "y": 38.3
+      },
+      "objectives": [
+        "Escort Reginald Windsor through Stormwind Keep to unmask Lady Katrana Prestor and speak with Highlord Bolvar Fordragon (80.2, 38.3)."
+      ],
+      "rewards": [],
+      "reward_xp": 6600,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [],
+      "followup_quest_ids": [6502],
+      "class_restriction": [],
+      "is_dungeon": false,
+      "dungeon_name": "",
+      "aliases": [
+        "La gran mascarada",
+        "La grande mascherata",
+        "Onyxia attunement Alliance",
+        "Armonizacion Onyxia Alianza"
+      ],
+      "summary": "Key Stormwind City event in the Alliance Onyxia's Lair attunement chain, turning in to Highlord Bolvar Fordragon at (80.2, 38.3).",
+      "tags": ["onyxia", "attunement", "stormwind", "alliance"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=6403/the-great-masquerade"
+    },
+    {
+      "quest_id": 6502,
+      "name": "Drakefire Amulet",
+      "zone": "Winterspring",
+      "faction": "Alliance",
+      "quest_level": 60,
+      "min_level": 55,
+      "x": 54.4,
+      "y": 51.1,
+      "giver": {
+        "name": "Haleh",
+        "npc_id": 10920,
+        "zone": "Winterspring",
+        "x": 54.4,
+        "y": 51.1
+      },
+      "turnin": {
+        "name": "Haleh",
+        "npc_id": 10920,
+        "zone": "Winterspring",
+        "x": 54.4,
+        "y": 51.1
+      },
+      "objectives": [
+        "Defeat General Drakkisath in Upper Blackrock Spire and bring the Blood of the Black Dragon Champion to Haleh at Mazthoril in Winterspring (54.4, 51.1)."
+      ],
+      "rewards": [
+        {
+          "item_name": "Drakefire Amulet",
+          "item_id": 16309,
+          "quantity": 1,
+          "choice": false
+        }
+      ],
+      "reward_xp": 9950,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [6403],
+      "followup_quest_ids": [],
+      "class_restriction": [],
+      "is_dungeon": true,
+      "dungeon_name": "Upper Blackrock Spire",
+      "aliases": [
+        "Amuleto de fuego draconico",
+        "Amuleto di Fuocodragone",
+        "Onyxia attunement",
+        "Cuna del Invierno"
+      ],
+      "summary": "Final step of Alliance Onyxia's Lair attunement: loot Blood of the Black Dragon Champion from General Drakkisath in UBRS and return to Haleh in Winterspring (54.4, 51.1) for Drakefire Amulet.",
+      "tags": ["onyxia", "attunement", "ubrs", "alliance"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=6502/drakefire-amulet"
+    },
+    {
+      "quest_id": 6602,
+      "name": "Blood of the Black Dragon Champion",
+      "zone": "Badlands",
+      "faction": "Horde",
+      "quest_level": 60,
+      "min_level": 55,
+      "x": 25.9,
+      "y": 44.6,
+      "giver": {
+        "name": "Rexxar",
+        "npc_id": 10817,
+        "zone": "Desolace",
+        "x": 50.0,
+        "y": 60.0
+      },
+      "turnin": {
+        "name": "Rokaro",
+        "npc_id": 12901,
+        "zone": "Orgrimmar",
+        "x": 31.8,
+        "y": 37.8
+      },
+      "objectives": [
+        "Slay General Drakkisath in Upper Blackrock Spire, collect Blood of the Black Dragon Champion, and return to Rexxar (Desolace/Feralas patrol) / Rokaro in Orgrimmar for Drakefire Amulet."
+      ],
+      "rewards": [
+        {
+          "item_name": "Drakefire Amulet",
+          "item_id": 16309,
+          "quantity": 1,
+          "choice": false
+        }
+      ],
+      "reward_xp": 9950,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [],
+      "followup_quest_ids": [],
+      "class_restriction": [],
+      "is_dungeon": true,
+      "dungeon_name": "Upper Blackrock Spire",
+      "aliases": [
+        "Sangre del campeon dragon negro",
+        "Sangue del Campione dei Draghi Neri",
+        "Onyxia attunement Horde",
+        "Armonizacion Onyxia Horda"
+      ],
+      "summary": "Final step of the Horde Onyxia's Lair attunement chain rewarding Drakefire Amulet (item=16309) after defeating General Drakkisath in UBRS.",
+      "tags": ["onyxia", "attunement", "ubrs", "horde"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=6602/blood-of-the-black-dragon-champion"
+    },
+    {
+      "quest_id": 7487,
+      "name": "Attunement to the Core",
+      "zone": "Blackrock Mountain",
+      "faction": "Both",
+      "quest_level": 60,
+      "min_level": 55,
+      "x": 31.1,
+      "y": 30.1,
+      "giver": {
+        "name": "Lothos Riftwaker",
+        "npc_id": 14387,
+        "zone": "Blackrock Mountain",
+        "x": 31.1,
+        "y": 30.1
+      },
+      "turnin": {
+        "name": "Lothos Riftwaker",
+        "npc_id": 14387,
+        "zone": "Blackrock Mountain",
+        "x": 31.1,
+        "y": 30.1
+      },
+      "objectives": [
+        "Enter Blackrock Depths, loot a Core Fragment near the Molten Core portal bridge, and return to Lothos Riftwaker in the Blackrock Mountain chain alcove."
+      ],
+      "rewards": [],
+      "reward_xp": 9950,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [],
+      "followup_quest_ids": [],
+      "class_restriction": [],
+      "is_dungeon": true,
+      "dungeon_name": "Blackrock Depths",
+      "aliases": [
+        "Armonizacion con el Nucleo",
+        "Armonizzazione con il Nucleo",
+        "Molten Core attunement",
+        "MC attunement",
+        "Nucleo de Magma"
+      ],
+      "summary": "Grants direct teleportation into Molten Core via Lothos Riftwaker in Blackrock Mountain (approx. 31.1, 30.1 Burning Steppes exterior / 26.4, 24.5 Searing Gorge exterior) after looting Core Fragment in BRD.",
+      "tags": ["molten core", "attunement", "brd", "raid"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=7487/attunement-to-the-core"
+    },
+    {
+      "quest_id": 7786,
+      "name": "Thunderaan the Windseeker",
+      "zone": "Silithus",
+      "faction": "Both",
+      "quest_level": 60,
+      "min_level": 60,
+      "x": 29.6,
+      "y": 10.6,
+      "giver": {
+        "name": "Highlord Demitrian",
+        "npc_id": 14347,
+        "zone": "Silithus",
+        "x": 29.6,
+        "y": 10.6
+      },
+      "turnin": {
+        "name": "Highlord Demitrian",
+        "npc_id": 14347,
+        "zone": "Silithus",
+        "x": 29.6,
+        "y": 10.6
+      },
+      "objectives": [
+        "Bring Left & Right Bindings of the Windseeker (from Garr and Baron Geddon in Molten Core), 10 Enchanted Elementium Bars, and Essence of the Firelord (from Ragnaros) to summon and defeat Prince Thunderaan in Silithus."
+      ],
+      "rewards": [
+        {
+          "item_name": "Thunderfury, Blessed Blade of the Windseeker",
+          "item_id": 19019,
+          "quantity": 1,
+          "choice": false
+        }
+      ],
+      "reward_xp": 0,
+      "reward_copper": 0,
+      "prerequisite_quest_ids": [7785],
+      "followup_quest_ids": [],
+      "class_restriction": ["Warrior", "Paladin", "Rogue", "Hunter"],
+      "is_dungeon": false,
+      "dungeon_name": "",
+      "aliases": [
+        "Trueno Furioso",
+        "Thunderaan el Hijo del Viento",
+        "Rise, Thunderfury!",
+        "Furia del Tuono"
+      ],
+      "summary": "Legendary quest in northwestern Silithus (29.6, 10.6) culminating in summoning Prince Thunderaan and earning Thunderfury, Blessed Blade of the Windseeker.",
+      "tags": ["thunderfury", "legendary", "silithus", "molten core"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/quest=7786/thunderaan-the-windseeker"
+    }
+  ],
+  "mobs": [
+    {
+      "npc_id": 233,
+      "name": "Gryan Stoutmantle",
+      "zone": "Westfall",
+      "mob_type": "Humanoid",
+      "classification": "Quest Giver",
+      "level_min": 25,
+      "level_max": 25,
+      "faction": "Alliance",
+      "x": 56.2,
+      "y": 47.6,
+      "subzone": "Sentinel Hill",
+      "dungeon_id": null,
+      "dungeon_name": "",
+      "drops": [],
+      "is_quest_giver": true,
+      "aliases": [
+        "Gryan Mantorrecio",
+        "Colina del Centinela",
+        "Sentinel Hill"
+      ],
+      "summary": "Commander of the People's Militia at Sentinel Hill in Westfall (56.2, 47.6); gives The Defias Brotherhood quest chain.",
+      "tags": ["westfall", "quest giver", "alliance"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=233/gryan-stoutmantle"
+    },
+    {
+      "npc_id": 234,
+      "name": "Marshal Dughan",
+      "zone": "Elwynn Forest",
+      "mob_type": "Humanoid",
+      "classification": "Quest Giver",
+      "level_min": 25,
+      "level_max": 25,
+      "faction": "Alliance",
+      "x": 42.1,
+      "y": 65.9,
+      "subzone": "Goldshire",
+      "dungeon_id": null,
+      "dungeon_name": "",
+      "drops": [],
+      "is_quest_giver": true,
+      "aliases": [
+        "Alguacil Dughan",
+        "Maresciallo Dughan",
+        "Villadorada",
+        "Goldshire"
+      ],
+      "summary": "Alliance marshal stationed in Goldshire, Elwynn Forest (42.1, 65.9); turn-in NPC for Wanted: \"Hogger\".",
+      "tags": ["elwynn", "goldshire", "quest giver", "alliance"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=234/marshal-dughan"
+    },
+    {
+      "npc_id": 448,
+      "name": "Hogger",
+      "zone": "Elwynn Forest",
+      "mob_type": "Humanoid",
+      "classification": "Elite",
+      "level_min": 11,
+      "level_max": 11,
+      "faction": "Neutral",
+      "x": 26.2,
+      "y": 92.3,
+      "subzone": "Southwestern Elwynn Forest",
+      "dungeon_id": null,
+      "dungeon_name": "",
+      "drops": [
+        {
+          "item_name": "Huge Gnoll Claw",
+          "item_id": 1931,
+          "drop_rate": 100.0,
+          "notes": "Quest item while on Wanted: \"Hogger\"."
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Hogger Elwynn",
+        "Gnoll elite Elwynn",
+        "Bosque de Elwynn"
+      ],
+      "summary": "Level 11 Elite Gnoll patrolling southwestern Elwynn Forest around (26.2, 92.3), target of quest 176 Wanted: \"Hogger\".",
+      "tags": ["elwynn", "elite", "gnoll"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=448/hogger"
+    },
+    {
+      "npc_id": 639,
+      "name": "Edwin VanCleef",
+      "zone": "The Deadmines",
+      "mob_type": "Humanoid",
+      "classification": "Boss",
+      "level_min": 20,
+      "level_max": 21,
+      "faction": "Neutral",
+      "x": null,
+      "y": null,
+      "subzone": "Ironclad Cove",
+      "dungeon_id": 1581,
+      "dungeon_name": "The Deadmines",
+      "drops": [
+        {
+          "item_name": "Cruel Barb",
+          "item_id": 5191,
+          "drop_rate": 21.0,
+          "notes": "1H Sword"
+        },
+        {
+          "item_name": "Blackened Defias Armor",
+          "item_id": 10399,
+          "drop_rate": 24.0,
+          "notes": "Leather chest"
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "VanCleef",
+        "Minas de la Muerte jefe",
+        "Miniere della Morte boss"
+      ],
+      "summary": "Final boss of The Deadmines (Level 20-21 Elite/Boss) aboard the Juggernaught ship in Ironclad Cove.",
+      "tags": ["deadmines", "boss", "defias"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=639/edwin-vancleef"
+    },
+    {
+      "npc_id": 3432,
+      "name": "Mankrik",
+      "zone": "The Barrens",
+      "mob_type": "Humanoid",
+      "classification": "Quest Giver",
+      "level_min": 15,
+      "level_max": 15,
+      "faction": "Horde",
+      "x": 52.1,
+      "y": 31.6,
+      "subzone": "The Crossroads",
+      "dungeon_id": null,
+      "dungeon_name": "",
+      "drops": [],
+      "is_quest_giver": true,
+      "aliases": [
+        "El Cruce",
+        "The Crossroads",
+        "Esposa de Mankrik",
+        "Moglie di Mankrik",
+        "Los Baldios"
+      ],
+      "summary": "Orc quest giver located at The Crossroads in The Barrens (52.1, 31.6); offers quest 4921 Lost in Battle (Mankrik's Wife).",
+      "tags": ["barrens", "crossroads", "horde", "quest giver"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=3432/mankrik"
+    },
+    {
+      "npc_id": 6109,
+      "name": "Azuregos",
+      "zone": "Azshara",
+      "mob_type": "Dragonkin",
+      "classification": "Boss",
+      "level_min": 63,
+      "level_max": 63,
+      "faction": "Neutral",
+      "x": 55.0,
+      "y": 82.0,
+      "subzone": "Southern Azshara",
+      "dungeon_id": null,
+      "dungeon_name": "",
+      "drops": [
+        {
+          "item_name": "Mature Blue Dragon Sinew",
+          "item_id": 18704,
+          "drop_rate": 35.0,
+          "notes": "Hunter epic quiver quest item."
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Jefe del mundo Azshara",
+        "World Boss Azshara",
+        "Boss mondiale Azshara"
+      ],
+      "summary": "Level 63 World Boss (Blue Dragon) patrolling southern Azshara around (55.0, 82.0) in WoW Classic Forever.",
+      "tags": ["world boss", "azshara", "dragon"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=6109/azuregos"
+    },
+    {
+      "npc_id": 9019,
+      "name": "Emperor Dagran Thaurissan",
+      "zone": "Blackrock Depths",
+      "mob_type": "Humanoid",
+      "classification": "Boss",
+      "level_min": 59,
+      "level_max": 59,
+      "faction": "Neutral",
+      "x": null,
+      "y": null,
+      "subzone": "The Imperial Seat",
+      "dungeon_id": 1584,
+      "dungeon_name": "Blackrock Depths",
+      "drops": [
+        {
+          "item_name": "Ironfoe",
+          "item_id": 11684,
+          "drop_rate": 1.0,
+          "notes": "~1.0% observed Classic Era 1.15.x drop rate."
+        },
+        {
+          "item_name": "Hand of Justice",
+          "item_id": 11815,
+          "drop_rate": 4.0,
+          "notes": "Drops from Thaurissan in Classic Era 1.15.x (post-1.10 loot table)."
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Emperador Dagran Thaurissan",
+        "Imperatore Dagran Thaurissan",
+        "Thaurissan",
+        "BRD final boss"
+      ],
+      "summary": "Final boss of Blackrock Depths (Level 59 Boss) in The Imperial Seat; drops Ironfoe (~1.0%) and Hand of Justice (~4.0%) in Classic Era 1.15.x.",
+      "tags": ["brd", "boss", "ironfoe", "hand of justice"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=9019/emperor-dagran-thaurissan"
+    },
+    {
+      "npc_id": 10363,
+      "name": "General Drakkisath",
+      "zone": "Upper Blackrock Spire",
+      "mob_type": "Dragonkin",
+      "classification": "Boss",
+      "level_min": 63,
+      "level_max": 63,
+      "faction": "Neutral",
+      "x": null,
+      "y": null,
+      "subzone": "Hall of Ascension",
+      "dungeon_id": 1583,
+      "dungeon_name": "Upper Blackrock Spire",
+      "drops": [
+        {
+          "item_name": "Draconian Deflector",
+          "item_id": 12602,
+          "drop_rate": 16.0,
+          "notes": "Tank shield"
+        },
+        {
+          "item_name": "Blood of the Black Dragon Champion",
+          "item_id": 16663,
+          "drop_rate": 100.0,
+          "notes": "Onyxia attunement quest drop"
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Drakkisath",
+        "UBRS final boss",
+        "Cumbre de Roca Negra Superior"
+      ],
+      "summary": "Final boss of Upper Blackrock Spire (10-player), Level 63 Boss required for Onyxia's Lair attunement quests 6502 and 6602.",
+      "tags": ["ubrs", "boss", "onyxia", "attunement"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=10363/general-drakkisath"
+    },
+    {
+      "npc_id": 10429,
+      "name": "Warchief Rend Blackhand",
+      "zone": "Upper Blackrock Spire",
+      "mob_type": "Humanoid",
+      "classification": "Boss",
+      "level_min": 62,
+      "level_max": 62,
+      "faction": "Neutral",
+      "x": null,
+      "y": null,
+      "subzone": "Blackrock Stadium",
+      "dungeon_id": 1583,
+      "dungeon_name": "Upper Blackrock Spire",
+      "drops": [
+        {
+          "item_name": "Felstriker",
+          "item_id": 12590,
+          "drop_rate": 1.0,
+          "notes": "~1.0% observed Classic Era drop rate."
+        },
+        {
+          "item_name": "Dal'Rend's Sacred Charge",
+          "item_id": 12940,
+          "drop_rate": 5.0,
+          "notes": "~5.0% observed Classic Era drop rate."
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Rend Blackhand",
+        "Jefe de Guerra Rend Puño Negro",
+        "Capoguerra Rend Manonera",
+        "UBRS"
+      ],
+      "summary": "Level 62 Boss in Blackrock Stadium inside Upper Blackrock Spire; drops Felstriker (~1.0%) and Dal'Rend's Sacred Charge (~5.0%).",
+      "tags": ["ubrs", "boss", "felstriker", "dal'rend"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=10429/warchief-rend-blackhand"
+    },
+    {
+      "npc_id": 10440,
+      "name": "Baron Rivendare",
+      "zone": "Stratholme",
+      "mob_type": "Undead",
+      "classification": "Boss",
+      "level_min": 62,
+      "level_max": 62,
+      "faction": "Neutral",
+      "x": null,
+      "y": null,
+      "subzone": "Slaughter Square",
+      "dungeon_id": 2017,
+      "dungeon_name": "Stratholme",
+      "drops": [
+        {
+          "item_name": "Deathcharger's Reins",
+          "item_id": 13335,
+          "drop_rate": 0.9,
+          "notes": "~0.8-1.0% observed Classic Era drop rate."
+        },
+        {
+          "item_name": "Runeblade of Baron Rivendare",
+          "item_id": 13505,
+          "drop_rate": 1.0,
+          "notes": "Epic 2H Sword"
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Barón Osahendido",
+        "Barone Fieramorte",
+        "Rivendare",
+        "Stratholme Undead"
+      ],
+      "summary": "Final boss of Stratholme Undead side (Level 62 Boss, npc_id 10440); drops Deathcharger's Reins (~0.9%).",
+      "tags": ["stratholme", "boss", "mount", "undead"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=10440/baron-rivendare"
+    },
+    {
+      "npc_id": 12056,
+      "name": "Baron Geddon",
+      "zone": "Molten Core",
+      "mob_type": "Elemental",
+      "classification": "Boss",
+      "level_min": 63,
+      "level_max": 63,
+      "faction": "Neutral",
+      "x": null,
+      "y": null,
+      "subzone": "Molten Core",
+      "dungeon_id": 2717,
+      "dungeon_name": "Molten Core",
+      "drops": [
+        {
+          "item_name": "Bindings of the Windseeker (Right)",
+          "item_id": 18564,
+          "drop_rate": 4.0,
+          "notes": "Legendary quest component for Thunderfury."
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Barón Geddon",
+        "Barone Geddon",
+        "Nucleo de Magma",
+        "Molten Core"
+      ],
+      "summary": "Level 63 Raid Boss in Molten Core (40-player); drops the Right Half of Bindings of the Windseeker (~4.0%) for Thunderfury.",
+      "tags": ["molten core", "raid boss", "thunderfury"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=12056/baron-geddon"
+    },
+    {
+      "npc_id": 12057,
+      "name": "Garr",
+      "zone": "Molten Core",
+      "mob_type": "Elemental",
+      "classification": "Boss",
+      "level_min": 63,
+      "level_max": 63,
+      "faction": "Neutral",
+      "x": null,
+      "y": null,
+      "subzone": "Molten Core",
+      "dungeon_id": 2717,
+      "dungeon_name": "Molten Core",
+      "drops": [
+        {
+          "item_name": "Bindings of the Windseeker (Left)",
+          "item_id": 18563,
+          "drop_rate": 4.0,
+          "notes": "Legendary quest component for Thunderfury."
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Garr Molten Core",
+        "Nucleo de Magma",
+        "Bindings of the Windseeker"
+      ],
+      "summary": "Level 63 Raid Boss in Molten Core (40-player); drops the Left Half of Bindings of the Windseeker (~4.0%) for Thunderfury.",
+      "tags": ["molten core", "raid boss", "thunderfury"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=12057/garr"
+    },
+    {
+      "npc_id": 12397,
+      "name": "Lord Kazzak",
+      "zone": "Blasted Lands",
+      "mob_type": "Demon",
+      "classification": "Boss",
+      "level_min": 63,
+      "level_max": 63,
+      "faction": "Neutral",
+      "x": 47.0,
+      "y": 54.0,
+      "subzone": "The Tainted Scar",
+      "dungeon_id": null,
+      "dungeon_name": "",
+      "drops": [
+        {
+          "item_name": "The Eye of Shadow",
+          "item_id": 18665,
+          "drop_rate": 25.0,
+          "notes": "Priest Benediction quest item."
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Kazzak",
+        "Las Tierras Devastadas",
+        "Terre Devastate",
+        "World Boss"
+      ],
+      "summary": "Level 63 World Boss in The Tainted Scar, Blasted Lands (47.0, 54.0) in WoW Classic Forever.",
+      "tags": ["world boss", "blasted lands", "demon"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=12397/lord-kazzak"
+    },
+    {
+      "npc_id": 14387,
+      "name": "Lothos Riftwaker",
+      "zone": "Blackrock Mountain",
+      "mob_type": "Humanoid",
+      "classification": "Quest Giver",
+      "level_min": 60,
+      "level_max": 60,
+      "faction": "Neutral",
+      "x": 31.1,
+      "y": 30.1,
+      "subzone": "Blackrock Mountain Chain Alcove",
+      "dungeon_id": null,
+      "dungeon_name": "",
+      "drops": [],
+      "is_quest_giver": true,
+      "aliases": [
+        "Lothos",
+        "Montaña Roca Negra",
+        "Massiccio Roccianera",
+        "Molten Core attunement NPC"
+      ],
+      "summary": "Quest giver and Molten Core teleporter inside Blackrock Mountain (approx. 31.1, 30.1 Burning Steppes exterior / 26.4, 24.5 Searing Gorge exterior).",
+      "tags": ["blackrock mountain", "molten core", "quest giver"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=14387/lothos-riftwaker"
+    },
+    {
+      "npc_id": 14435,
+      "name": "Prince Thunderaan",
+      "zone": "Silithus",
+      "mob_type": "Elemental",
+      "classification": "Boss",
+      "level_min": 63,
+      "level_max": 63,
+      "faction": "Neutral",
+      "x": 29.6,
+      "y": 10.6,
+      "subzone": "Crystal Vale",
+      "dungeon_id": null,
+      "dungeon_name": "",
+      "drops": [
+        {
+          "item_name": "Dormant Wind Kissed Blade",
+          "item_id": 19018,
+          "drop_rate": 100.0,
+          "notes": "Quest item completing Thunderaan the Windseeker (7786)."
+        }
+      ],
+      "is_quest_giver": false,
+      "aliases": [
+        "Principe Thunderaan",
+        "Principe Tuoneraan",
+        "Thunderfury boss"
+      ],
+      "summary": "Level 63 summoned raid boss in northwestern Silithus (29.6, 10.6) defeated during quest 7786 to obtain Thunderfury.",
+      "tags": ["silithus", "boss", "thunderfury"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/npc=14435/prince-thunderaan"
+    }
+  ],
+  "items": [
+    {
+      "item_id": 11684,
+      "name": "Ironfoe",
+      "quality": "Epic",
+      "item_level": 60,
+      "req_level": 55,
+      "item_type": "One-Handed Mace",
+      "slot": "Main Hand",
+      "bind_type": "BoP",
+      "zone": "Blackrock Depths",
+      "sources": [
+        {
+          "source_type": "boss",
+          "source_name": "Emperor Dagran Thaurissan",
+          "source_id": 9019,
+          "zone": "Blackrock Depths",
+          "x": null,
+          "y": null,
+          "drop_rate": 1.0,
+          "notes": "~1.0% observed Classic Era 1.15.x drop rate."
+        }
+      ],
+      "stats": {
+        "dps": 48.5,
+        "speed": 2.4,
+        "proc": "Chance on hit: Grants 2 extra attacks and speaks Dwarvish."
+      },
+      "class_restriction": [],
+      "quest_use": "",
+      "aliases": [
+        "Hojahierro",
+        "Fierro Nemico",
+        "Mazamorra BRD maza"
+      ],
+      "summary": "Epic Main Hand Mace (iLvl 60, Req Lvl 55, BoP) dropped by Emperor Dagran Thaurissan in Blackrock Depths (~1.0% drop rate).",
+      "tags": ["brd", "epic", "mace", "pre-bis"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=11684/ironfoe"
+    },
+    {
+      "item_id": 11815,
+      "name": "Hand of Justice",
+      "quality": "Rare",
+      "item_level": 58,
+      "req_level": 53,
+      "item_type": "Trinket",
+      "slot": "Trinket",
+      "bind_type": "BoP",
+      "zone": "Blackrock Depths",
+      "sources": [
+        {
+          "source_type": "boss",
+          "source_name": "Emperor Dagran Thaurissan",
+          "source_id": 9019,
+          "zone": "Blackrock Depths",
+          "x": null,
+          "y": null,
+          "drop_rate": 4.0,
+          "notes": "Drops from Emperor Dagran Thaurissan in Classic Era 1.15.x (post-1.10 loot tables)."
+        }
+      ],
+      "stats": {
+        "attack_power": 20,
+        "proc": "2% chance on melee hit to gain 1 extra attack."
+      },
+      "class_restriction": [],
+      "quest_use": "",
+      "aliases": [
+        "Mano de Justicia",
+        "Mano della Giustizia",
+        "HoJ",
+        "Abalorio BRD"
+      ],
+      "summary": "Rare melee Trinket (iLvl 58, Req Lvl 53, BoP, +20 AP and 2% extra attack) dropped by Emperor Dagran Thaurissan in Blackrock Depths (~4.0% in Classic Era 1.15.x).",
+      "tags": ["brd", "trinket", "pre-bis"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=11815/hand-of-justice"
+    },
+    {
+      "item_id": 12590,
+      "name": "Felstriker",
+      "quality": "Epic",
+      "item_level": 63,
+      "req_level": 58,
+      "item_type": "Dagger",
+      "slot": "One-Hand",
+      "bind_type": "BoP",
+      "zone": "Upper Blackrock Spire",
+      "sources": [
+        {
+          "source_type": "boss",
+          "source_name": "Warchief Rend Blackhand",
+          "source_id": 10429,
+          "zone": "Upper Blackrock Spire",
+          "x": null,
+          "y": null,
+          "drop_rate": 1.0,
+          "notes": "~1.0% observed Classic Era drop rate."
+        }
+      ],
+      "stats": {
+        "dps": 46.8,
+        "speed": 1.7,
+        "proc": "All attacks guaranteed to land and be critical strikes for 3 sec."
+      },
+      "class_restriction": [],
+      "quest_use": "",
+      "aliases": [
+        "Asesina vil",
+        "Daga UBRS",
+        "Pugnale UBRS"
+      ],
+      "summary": "Epic One-Hand Dagger (iLvl 63, Req Lvl 58, BoP) dropped by Warchief Rend Blackhand in Upper Blackrock Spire (~1.0% drop rate).",
+      "tags": ["ubrs", "epic", "dagger", "rogue"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=12590/felstriker"
+    },
+    {
+      "item_id": 12640,
+      "name": "Lionheart Helm",
+      "quality": "Epic",
+      "item_level": 61,
+      "req_level": 56,
+      "item_type": "Plate",
+      "slot": "Head",
+      "bind_type": "BoE",
+      "zone": "Eastern Kingdoms",
+      "sources": [
+        {
+          "source_type": "craft",
+          "source_name": "Blacksmithing (Armorsmith 300)",
+          "source_id": null,
+          "zone": "",
+          "x": null,
+          "y": null,
+          "drop_rate": null,
+          "notes": "Crafted with 12x Arcanite Bar, 80x Thorium Bar, 40x Wicked Claw, 10x Blue Sapphire, 4x Azerothian Diamond."
+        }
+      ],
+      "stats": {
+        "strength": 18,
+        "crit_pct": 2,
+        "hit_pct": 2
+      },
+      "class_restriction": [],
+      "quest_use": "",
+      "aliases": [
+        "Yelmo de corazon de leon",
+        "Elmo Cuor di Leone",
+        "Lionheart",
+        "Blacksmithing helm"
+      ],
+      "summary": "Epic Plate Head (iLvl 61, Req Lvl 56, BoE, +18 Str, +2% Crit, +2% Hit) crafted by Blacksmithing (Armorsmith 300); no mob drop rate.",
+      "tags": ["plate", "warrior", "craft", "bis"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=12640/lionheart-helm"
+    },
+    {
+      "item_id": 12811,
+      "name": "Righteous Orb",
+      "quality": "Rare",
+      "item_level": 60,
+      "req_level": 0,
+      "item_type": "Trade Goods",
+      "slot": "",
+      "bind_type": "None",
+      "zone": "Stratholme",
+      "sources": [
+        {
+          "source_type": "mob",
+          "source_name": "Scarlet Crusade Elites (Stratholme Live)",
+          "source_id": null,
+          "zone": "Stratholme",
+          "x": null,
+          "y": null,
+          "drop_rate": 7.0,
+          "notes": "~5-10% observed drop rate across Scarlet Bastion elites & bosses in Stratholme."
+        }
+      ],
+      "stats": {
+        "reagent": "Used in Enchant Weapon - Crusader and high-level crafts."
+      },
+      "class_restriction": [],
+      "quest_use": "",
+      "aliases": [
+        "Orbe virtuoso",
+        "Globo Virtuoso",
+        "Crusader orb"
+      ],
+      "summary": "Rare Trade Good dropped by Scarlet Crusade elites in Stratholme Live (~5-10%); primary reagent for Enchant Weapon - Crusader.",
+      "tags": ["stratholme", "reagent", "crusader"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=12811/righteous-orb"
+    },
+    {
+      "item_id": 12940,
+      "name": "Dal'Rend's Sacred Charge",
+      "quality": "Rare",
+      "item_level": 63,
+      "req_level": 58,
+      "item_type": "One-Handed Sword",
+      "slot": "Main Hand",
+      "bind_type": "BoP",
+      "zone": "Upper Blackrock Spire",
+      "sources": [
+        {
+          "source_type": "boss",
+          "source_name": "Warchief Rend Blackhand",
+          "source_id": 10429,
+          "zone": "Upper Blackrock Spire",
+          "x": null,
+          "y": null,
+          "drop_rate": 5.0,
+          "notes": "Pairs with Dal'Rend's Tribal Guardian (item=12939)."
+        }
+      ],
+      "stats": {
+        "dps": 44.1,
+        "speed": 2.8,
+        "crit_pct": 1,
+        "strength": 4
+      },
+      "class_restriction": [],
+      "quest_use": "",
+      "aliases": [
+        "Carga sagrada de Dal'Rend",
+        "Carica Sacra di Dal'Rend",
+        "Dal'Rend main hand",
+        "Espada UBRS"
+      ],
+      "summary": "Rare Main Hand Sword (iLvl 63, Req Lvl 58, BoP, +1% Crit, +4 Str) dropped by Warchief Rend Blackhand in Upper Blackrock Spire (~5.0%).",
+      "tags": ["ubrs", "sword", "pre-bis"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=12940/dalrends-sacred-charge"
+    },
+    {
+      "item_id": 13335,
+      "name": "Deathcharger's Reins",
+      "quality": "Epic",
+      "item_level": 40,
+      "req_level": 40,
+      "item_type": "Mount",
+      "slot": "",
+      "bind_type": "BoP",
+      "zone": "Stratholme",
+      "sources": [
+        {
+          "source_type": "boss",
+          "source_name": "Baron Rivendare",
+          "source_id": 10440,
+          "zone": "Stratholme",
+          "x": null,
+          "y": null,
+          "drop_rate": 0.9,
+          "notes": "~0.8-1.0% observed Classic Era drop rate."
+        }
+      ],
+      "stats": {
+        "mount_speed": "100% ground mount"
+      },
+      "class_restriction": [],
+      "quest_use": "",
+      "aliases": [
+        "Riendas del destrero de la muerte",
+        "Redini del Destriero della Morte",
+        "Rivendare mount",
+        "Montura Stratholme"
+      ],
+      "summary": "Epic Mount (Req Lvl 40, BoP) dropped by Baron Rivendare (npc=10440) in Stratholme Undead (~0.9% drop rate).",
+      "tags": ["stratholme", "mount", "epic", "rivendare"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=13335/deathchargers-reins"
+    },
+    {
+      "item_id": 14551,
+      "name": "Edgemaster's Handguards",
+      "quality": "Epic",
+      "item_level": 49,
+      "req_level": 44,
+      "item_type": "Mail",
+      "slot": "Hands",
+      "bind_type": "BoE",
+      "zone": "",
+      "sources": [
+        {
+          "source_type": "world_drop",
+          "source_name": "Level 50+ World Drop",
+          "source_id": null,
+          "zone": "",
+          "x": null,
+          "y": null,
+          "drop_rate": null,
+          "notes": "Rare BoE world drop from level 50+ mobs/chests; exact per-mob rate varies."
+        }
+      ],
+      "stats": {
+        "weapon_skill": "+7 Daggers, +7 Axes, +7 Swords"
+      },
+      "class_restriction": [],
+      "quest_use": "",
+      "aliases": [
+        "Guardamanos del maestro de filo",
+        "Paramani del Maestro di Lama",
+        "Edgemasters",
+        "Guantes weapon skill"
+      ],
+      "summary": "Epic Mail Hands (iLvl 49, Req Lvl 44, BoE, +7 Axes/Daggers/Swords skill), a rare level 50+ world drop in Classic Forever.",
+      "tags": ["world drop", "weapon skill", "warrior", "epic"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=14551/edgemasters-handguards"
+    },
+    {
+      "item_id": 16252,
+      "name": "Formula: Enchant Weapon - Crusader",
+      "quality": "Uncommon",
+      "item_level": 60,
+      "req_level": 0,
+      "item_type": "Formula",
+      "slot": "",
+      "bind_type": "BoE",
+      "zone": "Western Plaguelands",
+      "sources": [
+        {
+          "source_type": "mob",
+          "source_name": "Scarlet Spellbinder",
+          "source_id": 4494,
+          "zone": "Western Plaguelands",
+          "x": 54.0,
+          "y": 32.0,
+          "drop_rate": 1.2,
+          "notes": "Also drops from Scarlet Archmage in Stratholme/Eastern Plaguelands."
+        }
+      ],
+      "stats": {
+        "profession": "Enchanting (300)"
+      },
+      "class_restriction": [],
+      "quest_use": "",
+      "aliases": [
+        "Formula: encantar arma: Cruzado",
+        "Formula: Incanta Arma - Crociato",
+        "Crusader enchant",
+        "Cruzado encantamiento"
+      ],
+      "summary": "Uncommon Enchanting (300) formula dropped by Scarlet Spellbinder in Western Plaguelands (~1.2%) and Scarlet Archmage in Stratholme.",
+      "tags": ["enchanting", "crusader", "plaguelands"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=16252/formula-enchant-weapon-crusader"
+    },
+    {
+      "item_id": 16309,
+      "name": "Drakefire Amulet",
+      "quality": "Rare",
+      "item_level": 60,
+      "req_level": 55,
+      "item_type": "Neck",
+      "slot": "Neck",
+      "bind_type": "BoP",
+      "zone": "Dustwallow Marsh",
+      "sources": [
+        {
+          "source_type": "quest",
+          "source_name": "Drakefire Amulet / Blood of the Black Dragon Champion",
+          "source_id": 6502,
+          "zone": "Winterspring",
+          "x": null,
+          "y": null,
+          "drop_rate": 100.0,
+          "notes": "Guaranteed reward from quest 6502 (Alliance) or 6602 (Horde)."
+        }
+      ],
+      "stats": {
+        "stamina": 10,
+        "fire_resistance": 15
+      },
+      "class_restriction": [],
+      "quest_use": "Required in inventory to enter Onyxia's Lair (40-player raid).",
+      "aliases": [
+        "Amuleto de fuego draconico",
+        "Amuleto di Fuocodragone",
+        "Onyxia key",
+        "Llave Onyxia"
+      ],
+      "summary": "Rare Neck (Req Lvl 55, BoP, +10 Stamina, +15 Fire Resistance) required as the attunement key to enter Onyxia's Lair; rewarded by quest 6502 (Alliance) and 6602 (Horde).",
+      "tags": ["onyxia", "attunement", "key"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=16309/drakefire-amulet"
+    },
+    {
+      "item_id": 19019,
+      "name": "Thunderfury, Blessed Blade of the Windseeker",
+      "quality": "Legendary",
+      "item_level": 80,
+      "req_level": 60,
+      "item_type": "One-Handed Sword",
+      "slot": "One-Hand",
+      "bind_type": "BoP",
+      "zone": "Silithus",
+      "sources": [
+        {
+          "source_type": "quest",
+          "source_name": "Thunderaan the Windseeker",
+          "source_id": 7786,
+          "zone": "Silithus",
+          "x": 29.6,
+          "y": 10.6,
+          "drop_rate": 100.0,
+          "notes": "Requires Left/Right Bindings from Garr & Baron Geddon (MC) and Essence of the Firelord (Ragnaros)."
+        }
+      ],
+      "stats": {
+        "dps": 53.9,
+        "speed": 1.9,
+        "agility": 5,
+        "stamina": 8,
+        "fire_resistance": 8,
+        "nature_resistance": 9
+      },
+      "class_restriction": ["Warrior", "Paladin", "Rogue", "Hunter"],
+      "quest_use": "",
+      "aliases": [
+        "Trueno Furioso, Espada Bendita del Hijo del Viento",
+        "Furia del Tuono",
+        "Thunderfury"
+      ],
+      "summary": "Legendary One-Hand Sword (iLvl 80, Req Lvl 60, BoP) obtained via quest 7786 in Silithus using Bindings from Garr and Baron Geddon in Molten Core.",
+      "tags": ["legendary", "molten core", "silithus", "sword"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/item=19019/thunderfury-blessed-blade-of-the-windseeker"
+    }
+  ],
+  "dungeons": [
+    {
+      "dungeon_id": 718,
+      "name": "Wailing Caverns",
+      "zone": "The Barrens",
+      "entrance_x": 45.0,
+      "entrance_y": 36.0,
+      "min_level": 15,
+      "rec_level_min": 17,
+      "rec_level_max": 25,
+      "player_cap": 5,
+      "faction": "Both",
+      "bosses": [
+        "Lady Anacondra",
+        "Lord Cobrahn",
+        "Lord Pythas",
+        "Lord Serpentis",
+        "Verdan the Everliving",
+        "Mutanus the Devourer"
+      ],
+      "key_quests": [
+        "Deviate Eradication",
+        "Leaders of the Fang",
+        "Serpentbloom"
+      ],
+      "notable_loot": [
+        "Armor of the Fang",
+        "Wingblade",
+        "Crescent Staff"
+      ],
+      "attunement_or_key": "",
+      "aliases": [
+        "Cuevas de los Lamentos",
+        "Caverne dei Lamenti",
+        "WC"
+      ],
+      "summary": "5-player Classic Era dungeon in The Barrens (entrance cave around 45.0, 36.0), recommended levels 17-25.",
+      "tags": ["dungeon", "barrens", "5-man", "wc"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=718/wailing-caverns"
+    },
+    {
+      "dungeon_id": 796,
+      "name": "Scarlet Monastery",
+      "zone": "Tirisfal Glades",
+      "entrance_x": 85.0,
+      "entrance_y": 32.0,
+      "min_level": 21,
+      "rec_level_min": 26,
+      "rec_level_max": 45,
+      "player_cap": 5,
+      "faction": "Both",
+      "bosses": [
+        "Bloodmage Thalnos",
+        "Arcanist Doan",
+        "Herod",
+        "High Inquisitor Whitemane",
+        "Scarlet Commander Mograine"
+      ],
+      "key_quests": [
+        "Into The Scarlet Monastery",
+        "In the Name of the Light",
+        "Compendium of the Fallen"
+      ],
+      "notable_loot": [
+        "Ravager",
+        "Herod's Shoulder",
+        "Whitemane's Chapeau",
+        "Illusionary Rod"
+      ],
+      "attunement_or_key": "The Scarlet Key (from Arcanist Doan's chest in Library) unlocks Armory & Cathedral.",
+      "aliases": [
+        "Monasterio Escarlata",
+        "Monastero Scarlatto",
+        "SM",
+        "Cruzada Escarlata"
+      ],
+      "summary": "Four-wing 5-player dungeon complex (Graveyard, Library, Armory, Cathedral) in northeastern Tirisfal Glades (85.0, 32.0), recommended levels 26-45.",
+      "tags": ["dungeon", "tirisfal", "5-man", "sm"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=796/scarlet-monastery"
+    },
+    {
+      "dungeon_id": 1581,
+      "name": "The Deadmines",
+      "zone": "Westfall",
+      "entrance_x": 42.0,
+      "entrance_y": 72.0,
+      "min_level": 15,
+      "rec_level_min": 18,
+      "rec_level_max": 23,
+      "player_cap": 5,
+      "faction": "Both",
+      "bosses": [
+        "Rhahk'Zor",
+        "Sneed",
+        "Gilnid",
+        "Mr. Smite",
+        "Captain Greenskin",
+        "Edwin VanCleef"
+      ],
+      "key_quests": [
+        "The Defias Brotherhood (166)",
+        "Red Silk Bandanas",
+        "Underground Assault"
+      ],
+      "notable_loot": [
+        "Cruel Barb",
+        "Smite's Mighty Hammer",
+        "Blackened Defias Armor"
+      ],
+      "attunement_or_key": "",
+      "aliases": [
+        "Minas de la Muerte",
+        "Le Miniere della Morte",
+        "Miniere della Morte",
+        "DM",
+        "VC"
+      ],
+      "summary": "5-player Classic Era dungeon accessed through Moonbrook in Westfall (42.0, 72.0), recommended levels 18-23.",
+      "tags": ["dungeon", "westfall", "5-man", "deadmines"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=1581/the-deadmines"
+    },
+    {
+      "dungeon_id": 1583,
+      "name": "Upper Blackrock Spire",
+      "zone": "Blackrock Mountain",
+      "entrance_x": 78.0,
+      "entrance_y": 30.0,
+      "min_level": 55,
+      "rec_level_min": 55,
+      "rec_level_max": 60,
+      "player_cap": 10,
+      "faction": "Both",
+      "bosses": [
+        "Pyroguard Emberseer",
+        "Warchief Rend Blackhand",
+        "The Beast",
+        "General Drakkisath"
+      ],
+      "key_quests": [
+        "Drakefire Amulet (6502)",
+        "Blood of the Black Dragon Champion (6602)",
+        "Blackhand's Command"
+      ],
+      "notable_loot": [
+        "Felstriker",
+        "Dal'Rend's Sacred Charge",
+        "Draconian Deflector",
+        "Briarwood Reed"
+      ],
+      "attunement_or_key": "Seal of Ascension required to open the UBRS door.",
+      "aliases": [
+        "Cumbre de Roca Negra Superior",
+        "Bastioni di Roccianera Superiori",
+        "UBRS",
+        "Blackrock Spire"
+      ],
+      "summary": "10-player Classic Era upper wing of Blackrock Spire inside Blackrock Mountain (approx. 78.0, 30.0 interior / Burning Steppes), level 55-60.",
+      "tags": ["dungeon", "raid", "10-man", "ubrs", "blackrock"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=1583/blackrock-spire"
+    },
+    {
+      "dungeon_id": 1584,
+      "name": "Blackrock Depths",
+      "zone": "Blackrock Mountain",
+      "entrance_x": 45.0,
+      "entrance_y": 56.0,
+      "min_level": 48,
+      "rec_level_min": 52,
+      "rec_level_max": 60,
+      "player_cap": 5,
+      "faction": "Both",
+      "bosses": [
+        "Lord Roccor",
+        "Bael'Gar",
+        "General Angerforge",
+        "Golem Lord Argelmach",
+        "Ambassador Flamelash",
+        "Emperor Dagran Thaurissan"
+      ],
+      "key_quests": [
+        "Attunement to the Core (7487)",
+        "Jail Break!",
+        "The Princess Saved?"
+      ],
+      "notable_loot": [
+        "Ironfoe",
+        "Hand of Justice",
+        "Savage Gladiator Chain",
+        "Circle of Flame"
+      ],
+      "attunement_or_key": "Shadowforge Key opens locked gates for shortcut runs.",
+      "aliases": [
+        "Profundidades de Roca Negra",
+        "Profondità di Roccianera",
+        "Profondita di Roccianera",
+        "BRD"
+      ],
+      "summary": "Massive 5-player Classic Era dungeon inside lower Blackrock Mountain (entrance coords ~45.0, 56.0), recommended levels 52-60.",
+      "tags": ["dungeon", "5-man", "brd", "blackrock"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=1584/blackrock-depths"
+    },
+    {
+      "dungeon_id": 1977,
+      "name": "Zul'Gurub",
+      "zone": "Stranglethorn Vale",
+      "entrance_x": 52.0,
+      "entrance_y": 17.0,
+      "min_level": 60,
+      "rec_level_min": 60,
+      "rec_level_max": 60,
+      "player_cap": 20,
+      "faction": "Both",
+      "bosses": [
+        "High Priestess Jeklik",
+        "High Priest Venoxis",
+        "Bloodlord Mandokir",
+        "High Priest Thekal",
+        "Jin'do the Hexxer",
+        "Hakkar"
+      ],
+      "key_quests": [
+        "The Heart of Hakkar",
+        "Paragons of Power"
+      ],
+      "notable_loot": [
+        "Swift Zulian Tiger",
+        "Swift Razzashi Raptor",
+        "Zandalarian Hero Charm"
+      ],
+      "attunement_or_key": "",
+      "aliases": [
+        "ZG",
+        "Vega de Tuercespina",
+        "Rovotorto"
+      ],
+      "summary": "20-player Classic Era raid in northeastern Stranglethorn Vale (52.0, 17.0), level 60.",
+      "tags": ["raid", "20-man", "zg", "stranglethorn"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=1977/zulgurub"
+    },
+    {
+      "dungeon_id": 2017,
+      "name": "Stratholme",
+      "zone": "Eastern Plaguelands",
+      "entrance_x": 33.0,
+      "entrance_y": 19.0,
+      "min_level": 55,
+      "rec_level_min": 58,
+      "rec_level_max": 60,
+      "player_cap": 5,
+      "faction": "Both",
+      "bosses": [
+        "Hearthsinger Forresten",
+        "Timmy the Cruel",
+        "Cannon Master Willey",
+        "Balnazzar",
+        "Baroness Anastari",
+        "Baron Rivendare"
+      ],
+      "key_quests": [
+        "The Archivist",
+        "The Great Fras Siabi",
+        "Dead Man's Plea"
+      ],
+      "notable_loot": [
+        "Deathcharger's Reins",
+        "Righteous Orb",
+        "Cape of the Black Baron",
+        "Mask of the Unforgiven"
+      ],
+      "attunement_or_key": "Key to the City opens the Service Entrance (Undead side).",
+      "aliases": [
+        "Strat",
+        "Tierras de la Peste del Este",
+        "Terre Infette Orientali"
+      ],
+      "summary": "5-player Classic Era dungeon in northern Eastern Plaguelands (main gate 33.0, 19.0; service gate 48.0, 22.0), recommended levels 58-60.",
+      "tags": ["dungeon", "5-man", "stratholme", "plaguelands"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=2017/stratholme"
+    },
+    {
+      "dungeon_id": 2057,
+      "name": "Scholomance",
+      "zone": "Western Plaguelands",
+      "entrance_x": 69.0,
+      "entrance_y": 72.0,
+      "min_level": 55,
+      "rec_level_min": 58,
+      "rec_level_max": 60,
+      "player_cap": 5,
+      "faction": "Both",
+      "bosses": [
+        "Kirtonos the Herald",
+        "Jandice Barov",
+        "Rattlegore",
+        "Ras Frostwhisper",
+        "Darkmaster Gandling"
+      ],
+      "key_quests": [
+        "The Skeleton Key",
+        "Doctor Theolen Krastinov, the Butcher",
+        "Kirtonos the Herald"
+      ],
+      "notable_loot": [
+        "Alanna's Embrace",
+        "Bonechill Hammer",
+        "Witchblade"
+      ],
+      "attunement_or_key": "Skeleton Key opens the main entrance door.",
+      "aliases": [
+        "Scholo",
+        "Tierras de la Peste del Oeste",
+        "Terre Infette Occidentali"
+      ],
+      "summary": "5-player Classic Era dungeon at Caer Darrow in Western Plaguelands (69.0, 72.0), recommended levels 58-60.",
+      "tags": ["dungeon", "5-man", "scholomance", "plaguelands"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=2057/scholomance"
+    },
+    {
+      "dungeon_id": 2159,
+      "name": "Onyxia's Lair",
+      "zone": "Dustwallow Marsh",
+      "entrance_x": 52.0,
+      "entrance_y": 75.0,
+      "min_level": 60,
+      "rec_level_min": 60,
+      "rec_level_max": 60,
+      "player_cap": 40,
+      "faction": "Both",
+      "bosses": [
+        "Onyxia"
+      ],
+      "key_quests": [
+        "Drakefire Amulet (6502)",
+        "Blood of the Black Dragon Champion (6602)"
+      ],
+      "notable_loot": [
+        "Head of Onyxia",
+        "Vis'kag the Bloodletter",
+        "Deathbringer",
+        "Tier 2 Helms"
+      ],
+      "attunement_or_key": "Drakefire Amulet (item=16309) required in inventory.",
+      "aliases": [
+        "Guarida de Onyxia",
+        "Antro di Onyxia",
+        "Onyxia",
+        "Ony"
+      ],
+      "summary": "40-player Classic Era raid in southern Dustwallow Marsh (52.0, 75.0), level 60; requires Drakefire Amulet.",
+      "tags": ["raid", "40-man", "onyxia", "dustwallow"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=2159/onyxias-lair"
+    },
+    {
+      "dungeon_id": 2437,
+      "name": "Ragefire Chasm",
+      "zone": "Orgrimmar",
+      "entrance_x": 52.0,
+      "entrance_y": 49.0,
+      "min_level": 10,
+      "rec_level_min": 13,
+      "rec_level_max": 18,
+      "player_cap": 5,
+      "faction": "Horde",
+      "bosses": [
+        "Taragaman the Hungerer",
+        "Oggleflint",
+        "Jergosh the Invoker",
+        "Bazzalan"
+      ],
+      "key_quests": [
+        "Hidden Enemies",
+        "Searching for the Lost Satchel",
+        "Testing an Enemy's Strength"
+      ],
+      "notable_loot": [
+        "Subterranean Cape",
+        "Chanting Blade"
+      ],
+      "attunement_or_key": "",
+      "aliases": [
+        "Sima Ignea",
+        "Baratro di Fiamma",
+        "RFC"
+      ],
+      "summary": "5-player Classic Era starter dungeon inside Cleft of Shadow in Orgrimmar (52.0, 49.0), recommended levels 13-18.",
+      "tags": ["dungeon", "5-man", "orgrimmar", "rfc"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=2437/ragefire-chasm"
+    },
+    {
+      "dungeon_id": 2677,
+      "name": "Blackwing Lair",
+      "zone": "Blackrock Mountain",
+      "entrance_x": 47.0,
+      "entrance_y": 40.0,
+      "min_level": 60,
+      "rec_level_min": 60,
+      "rec_level_max": 60,
+      "player_cap": 40,
+      "faction": "Both",
+      "bosses": [
+        "Razorgore the Untamed",
+        "Vaelastrasz the Corrupt",
+        "Broodlord Lashlayer",
+        "Firemaw",
+        "Chromaggus",
+        "Nefarian"
+      ],
+      "key_quests": [
+        "Blackhand's Command"
+      ],
+      "notable_loot": [
+        "Ashkandi, Greatsword of the Brotherhood",
+        "Neltharion's Tear",
+        "Tier 2 Armor"
+      ],
+      "attunement_or_key": "Blackhand's Command (Orb of Command behind Quartermaster Zigris/Scarshield Quartermaster).",
+      "aliases": [
+        "Guarida Alanegra",
+        "Fortezza dell'Ala Nera",
+        "BWL"
+      ],
+      "summary": "40-player Classic Era Tier 2 raid accessed via the Orb of Command in Blackrock Mountain (47.0, 40.0), level 60.",
+      "tags": ["raid", "40-man", "bwl", "tier2"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=2677/blackwing-lair"
+    },
+    {
+      "dungeon_id": 2717,
+      "name": "Molten Core",
+      "zone": "Blackrock Mountain",
+      "entrance_x": 27.0,
+      "entrance_y": 34.0,
+      "min_level": 55,
+      "rec_level_min": 60,
+      "rec_level_max": 60,
+      "player_cap": 40,
+      "faction": "Both",
+      "bosses": [
+        "Lucifron",
+        "Magmadar",
+        "Gehennas",
+        "Garr",
+        "Baron Geddon",
+        "Shazzrah",
+        "Sulfuron Harbinger",
+        "Golemagg the Incinerator",
+        "Majordomo Executus",
+        "Ragnaros"
+      ],
+      "key_quests": [
+        "Attunement to the Core (7487)"
+      ],
+      "notable_loot": [
+        "Bindings of the Windseeker",
+        "Perdition's Blade",
+        "Bonereaver's Edge",
+        "Tier 1 Armor"
+      ],
+      "attunement_or_key": "Attunement to the Core (7487) via Lothos Riftwaker.",
+      "aliases": [
+        "Nucleo de Magma",
+        "Nucleo Ardente",
+        "MC"
+      ],
+      "summary": "40-player Classic Era Tier 1 raid inside Blackrock Mountain (27.0, 34.0 via Lothos Riftwaker or BRD portal), level 60.",
+      "tags": ["raid", "40-man", "mc", "tier1"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=2717/molten-core"
+    },
+    {
+      "dungeon_id": 3428,
+      "name": "Temple of Ahn'Qiraj",
+      "zone": "Silithus",
+      "entrance_x": 23.0,
+      "entrance_y": 83.0,
+      "min_level": 60,
+      "rec_level_min": 60,
+      "rec_level_max": 60,
+      "player_cap": 40,
+      "faction": "Both",
+      "bosses": [
+        "The Prophet Skeram",
+        "Battleguard Sartura",
+        "Fankriss the Unyielding",
+        "Princess Huhuran",
+        "Twin Emperors",
+        "C'Thun"
+      ],
+      "key_quests": [
+        "Imperial Qiraji Armaments",
+        "Imperial Qiraji Regalia"
+      ],
+      "notable_loot": [
+        "Dark Edge of Insanity",
+        "Death's Sting",
+        "Tier 2.5 Armor"
+      ],
+      "attunement_or_key": "",
+      "aliases": [
+        "Templo de Ahn'Qiraj",
+        "Tempio di Ahn'Qiraj",
+        "AQ40"
+      ],
+      "summary": "40-player Classic Era raid in southern Silithus (23.0, 83.0), level 60, culminating in C'Thun.",
+      "tags": ["raid", "40-man", "aq40", "silithus"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=3428/temple-of-ahnqiraj"
+    },
+    {
+      "dungeon_id": 3429,
+      "name": "Ruins of Ahn'Qiraj",
+      "zone": "Silithus",
+      "entrance_x": 24.0,
+      "entrance_y": 91.0,
+      "min_level": 60,
+      "rec_level_min": 60,
+      "rec_level_max": 60,
+      "player_cap": 20,
+      "faction": "Both",
+      "bosses": [
+        "Kurinnaxx",
+        "General Rajaxx",
+        "Moam",
+        "Buru the Gorger",
+        "Ayamiss the Hunter",
+        "Ossirian the Unscarred"
+      ],
+      "key_quests": [
+        "The Fall of Ossirian"
+      ],
+      "notable_loot": [
+        "Head of Ossirian",
+        "Manso's/Cenarion Circle Class Sets"
+      ],
+      "attunement_or_key": "",
+      "aliases": [
+        "Ruinas de Ahn'Qiraj",
+        "Rovine di Ahn'Qiraj",
+        "AQ20"
+      ],
+      "summary": "20-player Classic Era raid in southern Silithus (24.0, 91.0), level 60.",
+      "tags": ["raid", "20-man", "aq20", "silithus"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=3429/ruins-of-ahnqiraj"
+    },
+    {
+      "dungeon_id": 3456,
+      "name": "Naxxramas",
+      "zone": "Eastern Plaguelands",
+      "entrance_x": 30.0,
+      "entrance_y": 75.0,
+      "min_level": 60,
+      "rec_level_min": 60,
+      "rec_level_max": 60,
+      "player_cap": 40,
+      "faction": "Both",
+      "bosses": [
+        "Anub'Rekhan",
+        "Patchwerk",
+        "Loatheb",
+        "Instructor Razuvious",
+        "The Four Horsemen",
+        "Sapphiron",
+        "Kel'Thuzad"
+      ],
+      "key_quests": [
+        "The Dread Citadel - Naxxramas"
+      ],
+      "notable_loot": [
+        "The Hungering Cold",
+        "Gressil, Dawn of Ruin",
+        "Atiesh, Greatstaff of the Guardian",
+        "Tier 3 Armor"
+      ],
+      "attunement_or_key": "Argent Dawn reputation attunement via Archmage Angela Dosantos at Light's Hope Chapel.",
+      "aliases": [
+        "Naxx",
+        "Naxxramas 40",
+        "Tierras de la Peste del Este"
+      ],
+      "summary": "40-player Classic Era final raid hovering above Eastern Plaguelands (30.0, 75.0 teleport pad in Plaguewood), level 60.",
+      "tags": ["raid", "40-man", "naxx", "tier3"],
+      "era_version": "1.15.x",
+      "source_url": "https://www.wowhead.com/classic/zone=3456/naxxramas"
+    }
+  ]
+}

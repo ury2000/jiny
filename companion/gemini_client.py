@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from .config import DEFAULT_MODEL, sanitize_model_name
-from .prompts import build_system_instruction
+from .prompts import apply_rag_context, build_system_instruction
 
 
 class JinyGeminiClient:
@@ -35,11 +35,17 @@ class JinyGeminiClient:
         """Clear stateful conversation tracking."""
         self.last_interaction_id = None
 
-    def ask(self, question: str, locale: str = "esES") -> str:
-        """Send a question to Gemini and track conversation state."""
+    def ask(self, question: str, locale: str = "esES", context: str | None = None) -> str:
+        """Send a question to Gemini (optionally grounded with RAG context) and track conversation state."""
+        clean_context = (context or "").strip()
+        prompt_input = (
+            apply_rag_context(question, clean_context, locale=locale)
+            if clean_context
+            else question
+        )
         kwargs: dict[str, Any] = {
             "model": self.model,
-            "input": question,
+            "input": prompt_input,
             "system_instruction": build_system_instruction(locale),
         }
         if self.last_interaction_id:

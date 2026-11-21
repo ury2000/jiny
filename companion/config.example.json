@@ -2,5 +2,9 @@
   "api_key": "",
   "model": "gemini-3.8-flash",
   "wow_forever_dir": "..\\_forever_",
-  "poll_interval_seconds": 0.25
+  "poll_interval_seconds": 0.25,
+  "rag_enabled": true,
+  "rag_db_path": "companion/data/classic_era_rag.db",
+  "rag_seed_path": "companion/data/classic_era_seed.json",
+  "rag_top_k": 4
 }

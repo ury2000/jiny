@@ -15,3 +15,9 @@ venv/
 .cursor/
 .antigravity/
 .agent/
+
+# Base de datos SQLite RAG local (reconstruible desde classic_era_seed.json)
+companion/data/*.db
+companion/data/*.db-shm
+companion/data/*.db-wal
+companion/data/*.sqlite

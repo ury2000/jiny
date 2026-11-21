@@ -1,5 +1,6 @@
 """Unit tests for Jiny Companion v0.2."""
 
+import importlib.util
 from pathlib import Path
 import sys
 import tempfile
@@ -149,6 +150,25 @@ class TestGeminiClient(unittest.TestCase):
         r2 = client.ask("Y que nivel recomiendas?", locale="esES")
         self.assertIn("Respuesta #2", r2)
         self.assertEqual(fake.interactions.calls[1]["previous_interaction_id"], "int-1")
+
+
+def load_tests(
+    loader: unittest.TestLoader,
+    tests: unittest.TestSuite,
+    pattern: str | None,
+) -> unittest.TestSuite:
+    if pattern is None:
+        tools_dir = Path(__file__).resolve().parent
+        for stem in ("test_rag", "test_v04"):
+            candidate = tools_dir / f"{stem}.py"
+            if candidate.exists():
+                spec = importlib.util.spec_from_file_location(stem, candidate)
+                if spec is not None and spec.loader is not None:
+                    module = importlib.util.module_from_spec(spec)
+                    sys.modules[stem] = module
+                    spec.loader.exec_module(module)
+                    tests.addTests(loader.loadTestsFromModule(module))
+    return tests
 
 
 if __name__ == "__main__":
