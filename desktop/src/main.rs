@@ -13,10 +13,10 @@ use watcher::ChatLogWatcher;
 
 fn resolve_wow_chatlog_path() -> PathBuf {
     let candidates = [
-        PathBuf::from("Logs/WoWChatLog.txt"),
+        PathBuf::from(r"D:\Games\Bnet\World of Warcraft\_forever_\Logs\WoWChatLog.txt"),
         PathBuf::from("_forever_/Logs/WoWChatLog.txt"),
         PathBuf::from("../_forever_/Logs/WoWChatLog.txt"),
-        PathBuf::from(r"D:\Games\Bnet\World of Warcraft\_forever_\Logs\WoWChatLog.txt"),
+        PathBuf::from("Logs/WoWChatLog.txt"),
     ];
 
     for candidate in candidates {
@@ -35,6 +35,7 @@ fn main() -> eframe::Result<()> {
     println!("  Chat Log Path: {}", log_path.display());
     println!("  Agentic Clipboard: ACTIVO");
     println!("  Iniciando ventana lateral...");
+    println!("  Llamando a eframe::run_native...");
 
     let (tx, rx) = mpsc::channel();
 
@@ -66,6 +67,9 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "Jiny Desktop Companion",
         native_options,
-        Box::new(|_cc| Ok(Box::new(JinyDesktopApp::new(rx)))),
+        Box::new(|_cc| {
+            println!("  [eframe] >> Setup closure ejecutándose <<");
+            Ok(Box::new(JinyDesktopApp::new(rx)))
+        }),
     )
 }

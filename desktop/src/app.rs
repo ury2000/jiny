@@ -4,23 +4,33 @@ use crate::agentic_clipboard::{AgenticClipboard, ProcessedMessage};
 use crate::llm::LlmClient;
 use crate::watcher::ChatQuery;
 use eframe::egui;
-use std::sync::mpsc::Receiver;
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::time::{Instant, SystemTime};
 
 pub struct UiMessage {
+    pub id: usize,
     pub source: String,
     pub question: String,
-    pub answer: String,
+    pub answer: Option<String>,
     pub macro_title: Option<String>,
     pub macro_code: Option<String>,
     pub timestamp: String,
+    pub is_pending: bool,
+}
+
+struct LlmTaskResponse {
+    message_id: usize,
+    result: Result<String, String>,
 }
 
 pub struct JinyDesktopApp {
-    rx: Receiver<ChatQuery>,
+    rx_chat: Receiver<ChatQuery>,
+    tx_llm: Sender<LlmTaskResponse>,
+    rx_llm: Receiver<LlmTaskResponse>,
     llm: LlmClient,
     clipboard: AgenticClipboard,
     messages: Vec<UiMessage>,
+    next_id: usize,
     input_text: String,
     auto_copy_enabled: bool,
     always_on_top: bool,
@@ -30,15 +40,19 @@ pub struct JinyDesktopApp {
 }
 
 impl JinyDesktopApp {
-    pub fn new(rx: Receiver<ChatQuery>) -> Self {
+    pub fn new(rx_chat: Receiver<ChatQuery>) -> Self {
+        let (tx_llm, rx_llm) = channel();
         let llm = LlmClient::new();
         let clipboard = AgenticClipboard::new();
 
         Self {
-            rx,
+            rx_chat,
+            tx_llm,
+            rx_llm,
             llm,
             clipboard,
             messages: Vec::new(),
+            next_id: 1,
             input_text: String::new(),
             auto_copy_enabled: true,
             always_on_top: true,
@@ -53,35 +67,41 @@ impl JinyDesktopApp {
         format!("{:02}:{:02}", dt.hour, dt.minute)
     }
 
-    fn handle_question(&mut self, source: &str, question: &str, locale: &str) {
+    fn handle_question(&mut self, ctx: &egui::Context, source: &str, question: &str, locale: &str) {
         let q = question.trim().to_string();
         if q.is_empty() {
             return;
         }
 
+        let id = self.next_id;
+        self.next_id += 1;
         self.is_thinking = true;
-        let answer_res = self.llm.ask(&q, locale);
-        self.is_thinking = false;
-
-        let raw_answer = match answer_res {
-            Ok(ans) => ans,
-            Err(e) => format!("Error al consultar a Jiny: {e}"),
-        };
-
-        let processed: ProcessedMessage =
-            self.clipboard.process_response(&raw_answer, self.auto_copy_enabled);
-
-        if let Some(msg) = processed.toast_notification {
-            self.toast = Some((msg, Instant::now()));
-        }
 
         self.messages.push(UiMessage {
+            id,
             source: source.to_string(),
-            question: q,
-            answer: processed.display_text,
-            macro_title: processed.macro_title,
-            macro_code: processed.macro_code,
+            question: q.clone(),
+            answer: None,
+            macro_title: None,
+            macro_code: None,
             timestamp: Self::format_now(),
+            is_pending: true,
+        });
+
+        let tx = self.tx_llm.clone();
+        let llm = self.llm.clone();
+        let ctx_clone = ctx.clone();
+        let q_clone = q;
+        let loc = locale.to_string();
+
+        // Non-blocking async worker thread for LLM / network query
+        std::thread::spawn(move || {
+            let result = llm.ask(&q_clone, &loc);
+            let _ = tx.send(LlmTaskResponse {
+                message_id: id,
+                result,
+            });
+            ctx_clone.request_repaint();
         });
     }
 }
@@ -89,8 +109,32 @@ impl JinyDesktopApp {
 impl eframe::App for JinyDesktopApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Poll messages from background WoW chat watcher
-        while let Ok(query) = self.rx.try_recv() {
-            self.handle_question("WoW Chat (/jiny)", &query.question, &query.locale);
+        while let Ok(query) = self.rx_chat.try_recv() {
+            self.handle_question(ctx, "WoW Chat (/jiny)", &query.question, &query.locale);
+        }
+
+        // Poll completed LLM responses from background worker threads
+        while let Ok(resp) = self.rx_llm.try_recv() {
+            let raw_answer = match resp.result {
+                Ok(ans) => ans,
+                Err(e) => format!("Error al consultar a Jiny: {e}"),
+            };
+
+            let processed: ProcessedMessage =
+                self.clipboard.process_response(&raw_answer, self.auto_copy_enabled);
+
+            if let Some(msg) = processed.toast_notification {
+                self.toast = Some((msg, Instant::now()));
+            }
+
+            if let Some(msg) = self.messages.iter_mut().find(|m| m.id == resp.message_id) {
+                msg.answer = Some(processed.display_text);
+                msg.macro_title = processed.macro_title;
+                msg.macro_code = processed.macro_code;
+                msg.is_pending = false;
+            }
+
+            self.is_thinking = self.messages.iter().any(|m| m.is_pending);
         }
 
         // Apply theme colors
@@ -138,95 +182,93 @@ impl eframe::App for JinyDesktopApp {
                 // Status pill
                 if self.is_thinking {
                     ui.colored_label(
-                        egui::Color32::from_rgb(56, 189, 248),
-                        egui::RichText::new("● Pensando...").size(11.0),
+                        gold_color,
+                        egui::RichText::new("🌀 Consultando archivos...")
+                            .size(11.0)
+                            .italics(),
                     );
                 } else {
-                    ui.colored_label(
-                        egui::Color32::from_rgb(16, 185, 129),
-                        egui::RichText::new("● EN VIVO (Classic)").size(11.0),
-                    );
+                    egui::Frame::none()
+                        .fill(egui::Color32::from_rgb(6, 78, 59))
+                        .rounding(10.0)
+                        .inner_margin(egui::Margin::symmetric(8.0, 2.0))
+                        .show(ui, |ui| {
+                            ui.colored_label(
+                                egui::Color32::from_rgb(52, 211, 153),
+                                egui::RichText::new("● EN VIVO (Classic 1.15.x)").size(11.0),
+                            );
+                        });
                 }
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     // Theme toggle
-                    let theme_label = if self.is_parchment_theme { "Tema: Pergamino" } else { "Tema: DarkGlass" };
+                    let theme_label = if self.is_parchment_theme { "📜 Pergamino" } else { "🌙 Dark" };
                     if ui.button(theme_label).clicked() {
                         self.is_parchment_theme = !self.is_parchment_theme;
                     }
 
-                    // Always on Top (Pin)
-                    let pin_text = if self.always_on_top { "📌 Fijado" } else { "📌 Desfijado" };
-                    if ui.selectable_label(self.always_on_top, pin_text).clicked() {
+                    // Always-on-top toggle
+                    let pin_text = if self.always_on_top { "📌 Fijado" } else { "📍 Desfijado" };
+                    if ui.button(pin_text).clicked() {
                         self.always_on_top = !self.always_on_top;
-                        let level = if self.always_on_top {
-                            egui::WindowLevel::AlwaysOnTop
-                        } else {
-                            egui::WindowLevel::Normal
-                        };
-                        ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(level));
-                        self.toast = Some((
+                        ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(
                             if self.always_on_top {
-                                "📌 Ventana fijada siempre visible sobre WoW".to_string()
+                                egui::WindowLevel::AlwaysOnTop
                             } else {
-                                "📌 Modo ventana normal".to_string()
+                                egui::WindowLevel::Normal
                             },
-                            Instant::now(),
                         ));
                     }
 
                     // Auto-copy toggle
-                    let copy_label = if self.auto_copy_enabled { "📋 Auto-Copy: ON" } else { "📋 Auto-Copy: OFF" };
-                    if ui.selectable_label(self.auto_copy_enabled, copy_label).clicked() {
+                    let copy_badge = if self.auto_copy_enabled {
+                        egui::RichText::new("⚡ Auto-Copy: ON").color(egui::Color32::from_rgb(52, 211, 153))
+                    } else {
+                        egui::RichText::new("⚡ Auto-Copy: OFF").color(egui::Color32::GRAY)
+                    };
+                    if ui.button(copy_badge).clicked() {
                         self.auto_copy_enabled = !self.auto_copy_enabled;
-                        self.toast = Some((
-                            if self.auto_copy_enabled {
-                                "📋 Auto-Copy activado (Macros listas para Ctrl+V en WoW)".to_string()
-                            } else {
-                                "📋 Auto-Copy desactivado".to_string()
-                            },
-                            Instant::now(),
-                        ));
                     }
                 });
             });
             ui.add_space(6.0);
         });
 
-        // Bottom Input bar
+        // Bottom input bar
         egui::TopBottomPanel::bottom("bottom_bar").show(ctx, |ui| {
-            ui.add_space(6.0);
+            ui.add_space(8.0);
             ui.horizontal(|ui| {
                 let text_edit = egui::TextEdit::singleline(&mut self.input_text)
-                    .hint_text("Pregunta a Jiny o escribe /jiny en el chat de WoW...")
+                    .hint_text("Haz una pregunta o pide una macro...")
                     .desired_width(ui.available_width() - 80.0);
-
                 let response = ui.add(text_edit);
-                let enter_pressed = response.lost_focus() && ctx.input(|i| i.key_pressed(egui::Key::Enter));
 
-                if (ui.button(egui::RichText::new("Enviar").strong()).clicked() || enter_pressed)
-                    && !self.input_text.trim().is_empty()
-                {
-                    let q = std::mem::take(&mut self.input_text);
-                    self.handle_question("Tú (Desktop)", &q, "esES");
-                    response.request_focus();
+                let submit = ui.button(egui::RichText::new("Enviar").strong()).clicked()
+                    || (response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
+
+                if submit && !self.input_text.trim().is_empty() {
+                    let text = std::mem::take(&mut self.input_text);
+                    self.handle_question(ctx, "Desktop", &text, "esES");
                 }
             });
-            ui.add_space(6.0);
+            ui.add_space(8.0);
         });
 
-        // Toast popup bar (if active < 2.5s)
-        if let Some((ref msg, time)) = self.toast {
-            if time.elapsed().as_secs_f32() < 2.5 {
-                egui::TopBottomPanel::top("toast_panel").show(ctx, |ui| {
-                    ui.add_space(2.0);
-                    ui.centered_and_justified(|ui| {
-                        ui.colored_label(
-                            egui::Color32::from_rgb(56, 189, 248),
-                            egui::RichText::new(msg).strong().size(12.0),
-                        );
-                    });
-                    ui.add_space(2.0);
+        // Toast notification banner
+        if let Some((ref text, ref time)) = self.toast {
+            if time.elapsed().as_secs() < 3 {
+                egui::TopBottomPanel::top("toast_bar").show(ctx, |ui| {
+                    egui::Frame::none()
+                        .fill(egui::Color32::from_rgb(16, 185, 129))
+                        .inner_margin(6.0)
+                        .show(ui, |ui| {
+                            ui.centered_and_justified(|ui| {
+                                ui.colored_label(
+                                    egui::Color32::BLACK,
+                                    egui::RichText::new(text).strong().size(12.0),
+                                );
+                            });
+                        });
                 });
             } else {
                 self.toast = None;
@@ -289,37 +331,50 @@ impl eframe::App for JinyDesktopApp {
                             });
 
                             ui.add_space(4.0);
-                            ui.label(&msg.answer);
 
-                            // Macro Card if present
-                            if let Some(ref macro_code) = msg.macro_code {
-                                ui.add_space(8.0);
-                                egui::Frame::none()
-                                    .fill(egui::Color32::from_rgb(10, 13, 20))
-                                    .stroke(egui::Stroke::new(1.0f32, gold_color))
-                                    .rounding(6.0)
-                                    .inner_margin(8.0)
-                                    .show(ui, |ui| {
-                                        ui.horizontal(|ui| {
-                                            let title = msg.macro_title.as_deref().unwrap_or("Macro Classic");
-                                            ui.colored_label(gold_color, egui::RichText::new(title).strong().size(11.0));
-                                            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                                                if ui.button(egui::RichText::new("📋 Copiar Macro").strong().size(11.0)).clicked() {
-                                                    if self.clipboard.copy(macro_code) {
-                                                        self.toast = Some((
-                                                            "¡Macro copiada! Pulsa Ctrl + V en WoW".to_string(),
-                                                            Instant::now(),
-                                                        ));
+                            if msg.is_pending {
+                                ui.horizontal(|ui| {
+                                    ui.spinner();
+                                    ui.colored_label(
+                                        gold_color,
+                                        egui::RichText::new("Consultando los archivos de Azeroth...")
+                                            .italics()
+                                            .size(12.0),
+                                    );
+                                });
+                            } else if let Some(ref ans) = msg.answer {
+                                ui.label(ans);
+
+                                // Macro Card if present
+                                if let Some(ref macro_code) = msg.macro_code {
+                                    ui.add_space(8.0);
+                                    egui::Frame::none()
+                                        .fill(egui::Color32::from_rgb(10, 13, 20))
+                                        .stroke(egui::Stroke::new(1.0f32, gold_color))
+                                        .rounding(6.0)
+                                        .inner_margin(8.0)
+                                        .show(ui, |ui| {
+                                            ui.horizontal(|ui| {
+                                                let title = msg.macro_title.as_deref().unwrap_or("Macro Classic");
+                                                ui.colored_label(gold_color, egui::RichText::new(title).strong().size(11.0));
+                                                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                                                    if ui.button(egui::RichText::new("📋 Copiar Macro").strong().size(11.0)).clicked() {
+                                                        if self.clipboard.copy(macro_code) {
+                                                            self.toast = Some((
+                                                                "¡Macro copiada! Pulsa Ctrl + V en WoW".to_string(),
+                                                                Instant::now(),
+                                                            ));
+                                                        }
                                                     }
-                                                }
+                                                });
                                             });
+                                            ui.add_space(4.0);
+                                            ui.colored_label(
+                                                egui::Color32::from_rgb(147, 197, 253),
+                                                egui::RichText::new(macro_code).monospace().size(11.0),
+                                            );
                                         });
-                                        ui.add_space(4.0);
-                                        ui.colored_label(
-                                            egui::Color32::from_rgb(147, 197, 253),
-                                            egui::RichText::new(macro_code).monospace().size(11.0),
-                                        );
-                                    });
+                                }
                             }
                         });
                     ui.add_space(10.0);
