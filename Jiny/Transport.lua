@@ -6,12 +6,39 @@ ns.Transport = Transport
 local MAX_OUTBOX = 20
 local filtersInstalled = false
 local flushFrame = nil
+local lastWhisperTarget = nil
+local lastWhisperTime = 0
 
 local function GetActiveLocale()
     if ns.Locale and ns.Locale.current then
         return ns.Locale.current
     end
     return "enUS"
+end
+
+local function GetPlayerWhisperTarget()
+    if type(GetUnitName) == "function" then
+        local name = GetUnitName("player", true)
+        if name and name ~= "" then
+            return name
+        end
+    end
+    if type(UnitFullName) == "function" then
+        local name, realm = UnitFullName("player")
+        if name and name ~= "" then
+            if realm and realm ~= "" then
+                return name .. "-" .. realm:gsub("%s+", "")
+            end
+            return name
+        end
+    end
+    if type(UnitName) == "function" then
+        local name = UnitName("player")
+        if name and name ~= "" then
+            return name
+        end
+    end
+    return nil
 end
 
 local function EnableChatLogging()
@@ -34,6 +61,16 @@ local function WhisperFilter(_, _, msg)
     return false
 end
 
+local function SystemFilter(_, _, msg)
+    if type(msg) == "string" and lastWhisperTarget and (time() - lastWhisperTime) <= 2 then
+        local rawShortName = lastWhisperTarget:match("^([^-]+)") or lastWhisperTarget
+        if msg:find(lastWhisperTarget, 1, true) or msg:find(rawShortName, 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
 function Transport:Init()
     if not filtersInstalled then
         local addFilter = (ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter)
@@ -41,6 +78,7 @@ function Transport:Init()
         if type(addFilter) == "function" then
             addFilter("CHAT_MSG_WHISPER", WhisperFilter)
             addFilter("CHAT_MSG_WHISPER_INFORM", WhisperFilter)
+            addFilter("CHAT_MSG_SYSTEM", SystemFilter)
         end
         if not flushFrame and type(CreateFrame) == "function" then
             flushFrame = CreateFrame("Frame")
@@ -92,9 +130,11 @@ function Transport.Send(question, callback)
 
     EnableChatLogging()
 
-    local playerName = type(UnitName) == "function" and UnitName("player") or nil
+    local playerName = GetPlayerWhisperTarget()
     local sendChat = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
     if type(sendChat) == "function" and playerName and playerName ~= "" then
+        lastWhisperTarget = playerName
+        lastWhisperTime = time()
         local payload = string.format("[JINY_Q#%s#%s] %s", reqId, lang, tostring(question or ""))
         pcall(sendChat, payload, "WHISPER", nil, playerName)
     end
