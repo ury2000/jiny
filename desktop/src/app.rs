@@ -117,7 +117,9 @@ impl eframe::App for JinyDesktopApp {
         static ONCE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
         if !ONCE.swap(true, std::sync::atomic::Ordering::Relaxed) {
             println!("  [app] >> 6. PRIMER FRAME RENDERIZADO EN PANTALLA! <<");
+            ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
             ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+            ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
         }
         // Poll messages from background WoW chat watcher
         while let Ok(query) = self.rx_chat.try_recv() {
