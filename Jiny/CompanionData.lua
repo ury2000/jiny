@@ -1,15 +1,22 @@
 local ADDON, ns = ...
 
 ns.CompanionData = {
-    updatedAt = 1795295504,
+    updatedAt = 1795340125,
     companionStatus = "online",
     replies = {
         {
-            id = "1795294457-6541",
+            id = "1795339810-8221",
             lang = "esES",
-            q = "Necesito una Macro para castear las habilidades de hunter Invocar halcon e arcano[mod:alt]",
-            a = "¡Por supuesto! Asumo que te refieres a tu **Aspecto del halcón** y a tu **Disparo arcano**. Con esta macro lanzarás Disparo arcano si mantienes pulsada la tecla Alt, o activarás Aspecto del halcón con una pulsación normal.\n\n[JINY_MACRO name=\"HalconArcano\"]\n#showtooltip\n/cast [mod:alt] Disparo arcano; Aspecto del halcón\n[/JINY_MACRO]\n\nEl comando `#showtooltip` cambiará automáticamente el icono y la descripción en tu barra de acción al pulsar la tecla Alt. Recuerda revisar en tus opciones de interfaz que la tecla Alt no esté asignada a la función de autohechizo si notas que no responde.",
-            t = 1795295504,
+            q = "¿Dónde está Mankrik?",
+            a = "Mankrik se encuentra en Los Baldíos (The Barrens), justo en el campamento de El Cruce (The Crossroads), en las coordenadas (52.1, 31.6). Es un PNJ de nivel 15 que te otorgará la clásica misión «Perdidos en el combate» (nivel recomendado 20, mínimo 14). Si lo que necesitas es encontrar a su esposa para completar su misión, su cuerpo yace más al sur, cerca del camino en (49.3, 50.4).",
+            t = 1795340117,
+        },
+        {
+            id = "1795339962-4513",
+            lang = "esES",
+            q = "¿Dónde está Mankrik?",
+            a = "Mankrik se encuentra en **Los Baldíos** (*The Barrens*), en el poblado de **El Cruce** (*The Crossroads*), exactamente en las coordenadas **(52.1, 31.6)**. \n\nEs un orco de nivel 15 que te entrega la misión «Perdidos en el combate» (nivel 20, disponible desde nivel 14). Por si acaso tu verdadera duda es dónde hallar a su difunta esposa para completar el encargo, su cuerpo descansa más al sur, en las coordenadas **(49.3, 50.4)**.",
+            t = 1795340125,
         },
     },
 }

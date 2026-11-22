@@ -195,11 +195,12 @@ class TkOverlayBackend(OverlayBackend):
         try:
             root = tk.Tk()
             root.title("Jiny Overlay")
-            root.geometry("400x260")
+            root.geometry("420x280+80+80")
             root.minsize(280, 160)
             try:
                 root.attributes("-topmost", self.always_on_top)
                 root.attributes("-alpha", self.opacity)
+                root.lift()
             except Exception:
                 pass
 
@@ -252,6 +253,11 @@ class TkOverlayBackend(OverlayBackend):
                 b.delete("1.0", "end")
                 b.insert("1.0", "\n\n".join(lines))
                 b.configure(state="disabled")
+                try:
+                    r.lift()
+                    r.attributes("-topmost", self.always_on_top)
+                except Exception:
+                    pass
 
             def _on_close() -> None:
                 self._closed = True
@@ -376,8 +382,10 @@ class OverlayManager:
             try:
                 tk_backend.start()
                 self._backend = tk_backend
+                print("  Overlay  : Activo (ventana flotante en pantalla)")
             except Exception as exc:
                 self.fallback_reason = str(exc)
+                print(f"  Overlay  : Fallback a headless ({exc})")
                 tk_backend.close()
                 self._backend = HeadlessOverlayBackend()
                 self._backend.start()
