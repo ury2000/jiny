@@ -60,6 +60,7 @@ fn main() -> eframe::Result<()> {
             .with_title("Jiny Desktop Companion • Classic Forever")
             .with_inner_size([480.0, 680.0])
             .with_min_inner_size([360.0, 420.0])
+            .with_position([100.0, 100.0])
             .with_visible(true)
             .with_active(true)
             .with_always_on_top(),
