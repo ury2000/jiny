@@ -41,11 +41,15 @@ pub struct JinyDesktopApp {
 
 impl JinyDesktopApp {
     pub fn new(rx_chat: Receiver<ChatQuery>) -> Self {
+        println!("  [app] 1. Entrando en JinyDesktopApp::new...");
         let (tx_llm, rx_llm) = channel();
+        println!("  [app] 2. Inicializando LlmClient...");
         let llm = LlmClient::new();
+        println!("  [app] 3. Inicializando AgenticClipboard...");
         let clipboard = AgenticClipboard::new();
+        println!("  [app] 4. Creando estructura JinyDesktopApp...");
 
-        Self {
+        let app = Self {
             rx_chat,
             tx_llm,
             rx_llm,
@@ -59,7 +63,9 @@ impl JinyDesktopApp {
             is_parchment_theme: false,
             toast: None,
             is_thinking: false,
-        }
+        };
+        println!("  [app] 5. JinyDesktopApp creada con éxito!");
+        app
     }
 
     fn format_now() -> String {
@@ -108,6 +114,11 @@ impl JinyDesktopApp {
 
 impl eframe::App for JinyDesktopApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        static ONCE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+        if !ONCE.swap(true, std::sync::atomic::Ordering::Relaxed) {
+            println!("  [app] >> 6. PRIMER FRAME RENDERIZADO EN PANTALLA! <<");
+            ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+        }
         // Poll messages from background WoW chat watcher
         while let Ok(query) = self.rx_chat.try_recv() {
             self.handle_question(ctx, "WoW Chat (/jiny)", &query.question, &query.locale);
