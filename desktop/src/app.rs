@@ -148,6 +148,7 @@ impl eframe::App for JinyDesktopApp {
             }
 
             self.is_thinking = self.messages.iter().any(|m| m.is_pending);
+            sync_to_companion_lua(&self.messages);
         }
 
         // Apply theme colors
@@ -290,23 +291,24 @@ impl eframe::App for JinyDesktopApp {
                     .stroke(egui::Stroke::new(1.0f32, egui::Color32::from_rgb(30, 41, 59))),
             )
             .show(ctx, |ui| {
-            ui.add_space(8.0);
-            ui.horizontal(|ui| {
-                let text_edit = egui::TextEdit::singleline(&mut self.input_text)
-                    .hint_text("Haz una pregunta o pide una macro...")
-                    .desired_width(ui.available_width() - 80.0);
-                let response = ui.add(text_edit);
+                ui.add_space(8.0);
+                ui.horizontal(|ui| {
+                    let text_edit = egui::TextEdit::singleline(&mut self.input_text)
+                        .hint_text("Haz una pregunta o pide una macro...")
+                        .desired_width(ui.available_width() - 80.0);
+                    let response = ui.add(text_edit);
 
-                let submit = ui.button(egui::RichText::new("Enviar").strong()).clicked()
-                    || (response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
+                    let enter_pressed = ui.input(|i| i.key_pressed(egui::Key::Enter));
+                    let submit = ui.button(egui::RichText::new("Enviar").strong()).clicked()
+                        || (enter_pressed && response.has_focus());
 
-                if submit && !self.input_text.trim().is_empty() {
-                    let text = std::mem::take(&mut self.input_text);
-                    self.handle_question(ctx, "Desktop", &text, "esES");
-                }
+                    if submit && !self.input_text.trim().is_empty() {
+                        let text = std::mem::take(&mut self.input_text);
+                        self.handle_question(ctx, "Desktop", &text, "esES");
+                    }
+                });
+                ui.add_space(8.0);
             });
-            ui.add_space(8.0);
-        });
 
         // Toast notification banner
         if let Some((ref text, ref time)) = self.toast {
@@ -457,5 +459,40 @@ impl ChronoFallback {
             hour: (total_minutes / 60) as u32,
             minute: (total_minutes % 60) as u32,
         }
+    }
+}
+
+fn sync_to_companion_lua(messages: &[UiMessage]) {
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    let mut lua = String::from("local ADDON, ns = ...\n\nns.CompanionData = {\n");
+    lua.push_str(&format!("    updatedAt = {},\n    companionStatus = \"online\",\n    replies = {{\n", now));
+
+    for msg in messages.iter().rev().take(10) {
+        if let Some(ref ans) = msg.answer {
+            let clean_q = msg.question.replace('\\', "\\\\").replace('"', "\\\"").replace('\r', "").replace('\n', "\\n");
+            let clean_a = ans.replace('\\', "\\\\").replace('"', "\\\"").replace('\r', "").replace('\n', "\\n");
+            lua.push_str("        {\n");
+            lua.push_str(&format!("            id = \"{}\",\n", msg.id));
+            lua.push_str("            lang = \"esES\",\n");
+            lua.push_str(&format!("            q = \"{}\",\n", clean_q));
+            lua.push_str(&format!("            a = \"{}\",\n", clean_a));
+            lua.push_str(&format!("            t = {},\n", now));
+            lua.push_str("        },\n");
+        }
+    }
+
+    lua.push_str("    },\n}\n");
+
+    let targets = [
+        r"D:\Games\Bnet\World of Warcraft\_forever_\Interface\AddOns\Jiny\CompanionData.lua",
+        r"D:\Games\Bnet\World of Warcraft\jiny\Jiny\CompanionData.lua",
+    ];
+
+    for target in targets {
+        let _ = std::fs::write(target, &lua);
     }
 }
