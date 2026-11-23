@@ -175,80 +175,121 @@ impl eframe::App for JinyDesktopApp {
         style.visuals.override_text_color = Some(text_color);
         ctx.set_style(style);
 
-        // Topbar
-        egui::TopBottomPanel::top("topbar").show(ctx, |ui| {
-            ui.add_space(6.0);
-            ui.horizontal(|ui| {
-                // Gold Icon
-                let (rect, _) = ui.allocate_exact_size(egui::vec2(22.0, 22.0), egui::Sense::hover());
-                ui.painter().rect_filled(rect, 4.0, gold_color);
-                ui.painter().text(
-                    rect.center(),
-                    egui::Align2::CENTER_CENTER,
-                    "J",
-                    egui::FontId::monospace(13.0),
-                    egui::Color32::BLACK,
-                );
-
-                ui.colored_label(gold_color, egui::RichText::new("JINY").strong().size(13.0));
-
-                // Status pill
-                if self.is_thinking {
-                    ui.colored_label(
-                        gold_color,
-                        egui::RichText::new("🌀 Consultando archivos...")
-                            .size(11.0)
-                            .italics(),
+        // Topbar / Integrated Custom Title Bar
+        egui::TopBottomPanel::top("topbar")
+            .frame(
+                egui::Frame::none()
+                    .fill(card_bg)
+                    .inner_margin(egui::Margin::symmetric(10.0, 8.0))
+                    .stroke(egui::Stroke::new(1.0f32, egui::Color32::from_rgb(30, 41, 59))),
+            )
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    // Left area: Icon & Title & Status
+                    let (rect, _) = ui.allocate_exact_size(egui::vec2(20.0, 20.0), egui::Sense::hover());
+                    ui.painter().rect_filled(rect, 4.0, gold_color);
+                    ui.painter().text(
+                        rect.center(),
+                        egui::Align2::CENTER_CENTER,
+                        "J",
+                        egui::FontId::monospace(12.0),
+                        egui::Color32::BLACK,
                     );
-                } else {
-                    egui::Frame::none()
-                        .fill(egui::Color32::from_rgb(6, 78, 59))
-                        .rounding(10.0)
-                        .inner_margin(egui::Margin::symmetric(8.0, 2.0))
-                        .show(ui, |ui| {
-                            ui.colored_label(
-                                egui::Color32::from_rgb(52, 211, 153),
-                                egui::RichText::new("● EN VIVO (Classic 1.15.x)").size(11.0),
-                            );
-                        });
-                }
 
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    // Theme toggle
-                    let theme_label = if self.is_parchment_theme { "📜 Pergamino" } else { "🌙 Dark" };
-                    if ui.button(theme_label).clicked() {
-                        self.is_parchment_theme = !self.is_parchment_theme;
-                    }
+                    ui.colored_label(gold_color, egui::RichText::new("JINY").strong().size(13.0));
 
-                    // Always-on-top toggle
-                    let pin_text = if self.always_on_top { "📌 Fijado" } else { "📍 Desfijado" };
-                    if ui.button(pin_text).clicked() {
-                        self.always_on_top = !self.always_on_top;
-                        ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(
-                            if self.always_on_top {
-                                egui::WindowLevel::AlwaysOnTop
-                            } else {
-                                egui::WindowLevel::Normal
-                            },
-                        ));
-                    }
-
-                    // Auto-copy toggle
-                    let copy_badge = if self.auto_copy_enabled {
-                        egui::RichText::new("⚡ Auto-Copy: ON").color(egui::Color32::from_rgb(52, 211, 153))
+                    if self.is_thinking {
+                        ui.colored_label(
+                            gold_color,
+                            egui::RichText::new("🌀 Consultando...").size(11.0).italics(),
+                        );
                     } else {
-                        egui::RichText::new("⚡ Auto-Copy: OFF").color(egui::Color32::GRAY)
-                    };
-                    if ui.button(copy_badge).clicked() {
-                        self.auto_copy_enabled = !self.auto_copy_enabled;
+                        egui::Frame::none()
+                            .fill(egui::Color32::from_rgb(6, 78, 59))
+                            .rounding(10.0)
+                            .inner_margin(egui::Margin::symmetric(6.0, 2.0))
+                            .show(ui, |ui| {
+                                ui.colored_label(
+                                    egui::Color32::from_rgb(52, 211, 153),
+                                    egui::RichText::new("● Classic 1.15.x").size(10.0),
+                                );
+                            });
                     }
+
+                    // Right-side integrated window controls (Right to Left order)
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        // Close button [✕]
+                        let close_btn = ui.button(
+                            egui::RichText::new("✕")
+                                .size(11.0)
+                                .color(egui::Color32::from_rgb(239, 68, 68)),
+                        );
+                        if close_btn.clicked() {
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                        }
+
+                        // Minimize button [—]
+                        let min_btn = ui.button(egui::RichText::new("—").size(11.0));
+                        if min_btn.clicked() {
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(true));
+                        }
+
+                        ui.separator();
+
+                        // Pin (Always on top)
+                        let pin_label = if self.always_on_top { "📌" } else { "📍" };
+                        let pin_btn = ui.button(egui::RichText::new(pin_label).size(12.0));
+                        if pin_btn.clicked() {
+                            self.always_on_top = !self.always_on_top;
+                            ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(
+                                if self.always_on_top {
+                                    egui::WindowLevel::AlwaysOnTop
+                                } else {
+                                    egui::WindowLevel::Normal
+                                },
+                            ));
+                        }
+
+                        // Theme toggle
+                        let theme_label = if self.is_parchment_theme { "📜" } else { "🌙" };
+                        if ui.button(egui::RichText::new(theme_label).size(12.0)).clicked() {
+                            self.is_parchment_theme = !self.is_parchment_theme;
+                        }
+
+                        // Auto-copy toggle
+                        let copy_color = if self.auto_copy_enabled {
+                            egui::Color32::from_rgb(52, 211, 153)
+                        } else {
+                            egui::Color32::GRAY
+                        };
+                        let copy_btn = ui.button(
+                            egui::RichText::new("⚡ Auto-Copy")
+                                .size(11.0)
+                                .color(copy_color),
+                        );
+                        if copy_btn.clicked() {
+                            self.auto_copy_enabled = !self.auto_copy_enabled;
+                        }
+
+                        // Draggable region: empty space between left badge and right buttons
+                        let remaining_rect = ui.available_rect_before_wrap();
+                        let drag_sense = ui.interact(remaining_rect, ui.id().with("title_drag"), egui::Sense::drag());
+                        if drag_sense.dragged() {
+                            ctx.send_viewport_cmd(egui::ViewportCommand::StartDrag);
+                        }
+                    });
                 });
             });
-            ui.add_space(6.0);
-        });
 
         // Bottom input bar
-        egui::TopBottomPanel::bottom("bottom_bar").show(ctx, |ui| {
+        egui::TopBottomPanel::bottom("bottom_bar")
+            .frame(
+                egui::Frame::none()
+                    .fill(card_bg)
+                    .inner_margin(egui::Margin::symmetric(10.0, 8.0))
+                    .stroke(egui::Stroke::new(1.0f32, egui::Color32::from_rgb(30, 41, 59))),
+            )
+            .show(ctx, |ui| {
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 let text_edit = egui::TextEdit::singleline(&mut self.input_text)

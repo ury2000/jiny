@@ -58,9 +58,11 @@ fn main() -> eframe::Result<()> {
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title("Jiny Desktop Companion • Classic Forever")
-            .with_inner_size([480.0, 680.0])
+            .with_inner_size([460.0, 680.0])
             .with_min_inner_size([360.0, 420.0])
             .with_position([100.0, 100.0])
+            .with_decorations(false)
+            .with_transparent(true)
             .with_visible(true)
             .with_active(true)
             .with_always_on_top(),
