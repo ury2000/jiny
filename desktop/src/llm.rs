@@ -54,9 +54,12 @@ impl LlmClient {
             Self::read_key_from_config()
         };
 
+        let model = std::env::var("GEMINI_MODEL")
+            .unwrap_or_else(|_| "gemini-2.5-flash".to_string());
+
         Self {
             api_key,
-            model: "gemini-3.8-flash".to_string(),
+            model,
         }
     }
 
@@ -122,7 +125,7 @@ impl LlmClient {
         };
 
         let client = reqwest::blocking::Client::builder()
-            .timeout(std::time::Duration::from_secs(15))
+            .timeout(std::time::Duration::from_secs(60))
             .build()
             .map_err(|e| format!("HTTP client build error: {e}"))?;
 
@@ -130,7 +133,14 @@ impl LlmClient {
             .post(&url)
             .json(&req_body)
             .send()
-            .map_err(|e| format!("Network error: {e}"))?;
+            .map_err(|e| {
+                let err_str = e.to_string();
+                if let Some(pos) = err_str.find("key=") {
+                    format!("Error de red o timeout al consultar a Gemini: {}", &err_str[..pos])
+                } else {
+                    format!("Error de red al consultar a Gemini: {err_str}")
+                }
+            })?;
 
         if !resp.status().is_success() {
             let status = resp.status();
