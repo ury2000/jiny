@@ -137,6 +137,8 @@ function Transport.Send(question, callback)
         lastWhisperTime = time()
         local payload = string.format("[JINY_Q#%s#%s] %s", reqId, lang, tostring(question or ""))
         pcall(sendChat, payload, "WHISPER", nil, playerName)
+        -- Flush immediately so WoWChatLog.txt on disk receives the line with zero lag
+        FlushChatLog()
     end
 
     if type(callback) == "function" then

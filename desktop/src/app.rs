@@ -95,6 +95,8 @@ impl JinyDesktopApp {
             .unwrap_or_default()
             .as_secs();
 
+        crate::logger::info(format!("[Consulta #{}] Fuente: {} | Pregunta: \"{}\"", id, source, q));
+
         self.messages.push(UiMessage {
             id,
             source: source.to_string(),
@@ -115,7 +117,9 @@ impl JinyDesktopApp {
 
         // Non-blocking async worker thread for LLM / network query
         std::thread::spawn(move || {
+            let start = std::time::Instant::now();
             let result = llm.ask(&q_clone, &loc);
+            crate::logger::info(format!("[Gemini #{}] Finalizado en {}ms (éxito: {})", id, start.elapsed().as_millis(), result.is_ok()));
             let _ = tx.send(LlmTaskResponse {
                 message_id: id,
                 result,
@@ -150,6 +154,7 @@ impl eframe::App for JinyDesktopApp {
                 self.clipboard.process_response(&raw_answer, self.auto_copy_enabled);
 
             if let Some(msg) = processed.toast_notification {
+                crate::logger::info(format!("[Portapapeles] {}", msg));
                 self.toast = Some((msg, Instant::now()));
             }
 

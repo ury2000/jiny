@@ -119,6 +119,11 @@ impl ChatLogWatcher {
     pub fn log_path(&self) -> &Path {
         &self.log_path
     }
+
+    #[allow(dead_code)]
+    pub fn current_offset(&self) -> u64 {
+        self.offset
+    }
 }
 
 #[cfg(test)]

@@ -1,6 +1,7 @@
 mod agentic_clipboard;
 mod app;
 mod llm;
+pub mod logger;
 mod watcher;
 
 use app::JinyDesktopApp;
@@ -31,11 +32,11 @@ fn resolve_wow_chatlog_path() -> PathBuf {
 
 fn main() -> eframe::Result<()> {
     let log_path = resolve_wow_chatlog_path();
-    println!("Jiny Desktop Companion (Rust Nativo 1.15.x)");
-    println!("  Chat Log Path: {}", log_path.display());
-    println!("  Agentic Clipboard: ACTIVO");
-    println!("  Iniciando ventana lateral...");
-    println!("  Llamando a eframe::run_native...");
+    logger::info("========================================");
+    logger::info("Jiny Desktop Companion (Rust Nativo 1.15.x) iniciado");
+    logger::info(format!("Ruta WoWChatLog.txt: {}", log_path.display()));
+    logger::info("Agentic Clipboard: ACTIVO");
+    logger::info("Iniciando ventana lateral con aceleración DirectX 12 (wgpu)...");
 
     let (tx, rx) = mpsc::channel();
 
@@ -43,14 +44,25 @@ fn main() -> eframe::Result<()> {
     let watcher_path = log_path.clone();
     thread::spawn(move || {
         let mut watcher = ChatLogWatcher::new(watcher_path, true);
+        logger::info(format!("Watcher de chat activo. Offset inicial: {} bytes", watcher.current_offset()));
+        let mut last_heartbeat = std::time::Instant::now();
+
         loop {
             let queries = watcher.poll();
             for q in queries {
-                println!("[WoW Log] #{}: {}", q.req_id, q.question);
+                logger::info(format!("[WoW Log] #{}: {}", q.req_id, q.question));
                 if tx.send(q).is_err() {
                     break;
                 }
             }
+
+            if last_heartbeat.elapsed().as_secs() >= 30 {
+                last_heartbeat = std::time::Instant::now();
+                if let Ok(meta) = std::fs::metadata(watcher.log_path()) {
+                    logger::debug(format!("WoWChatLog.txt tamaño: {} bytes | offset watcher: {}", meta.len(), watcher.current_offset()));
+                }
+            }
+
             thread::sleep(Duration::from_millis(250));
         }
     });

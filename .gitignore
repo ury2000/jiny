@@ -4,6 +4,8 @@ companion/oauth_token.json
 companion/client_secret.json
 desktop/chat_history.json
 chat_history.json
+desktop/jiny_desktop.log
+jiny_desktop.log
 .env
 
 # Python cache y entornos virtuales

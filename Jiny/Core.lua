@@ -124,6 +124,7 @@ end
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
+eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:SetScript("OnEvent", function(_, event, arg1)
     if event == "ADDON_LOADED" and arg1 == ADDON then
         JinyDB = JinyDB or {}
@@ -147,6 +148,10 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1)
             if ns.db and ns.db.shown then
                 ns.UI:Show()
             end
+        end
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        if ns.Transport and type(ns.Transport.Init) == "function" then
+            ns.Transport:Init()
         end
     end
 end)
