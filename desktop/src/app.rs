@@ -4,9 +4,12 @@ use crate::agentic_clipboard::{AgenticClipboard, ProcessedMessage};
 use crate::llm::LlmClient;
 use crate::watcher::ChatQuery;
 use eframe::egui;
+use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::time::{Instant, SystemTime};
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UiMessage {
     pub id: usize,
     pub source: String,
@@ -15,6 +18,7 @@ pub struct UiMessage {
     pub macro_title: Option<String>,
     pub macro_code: Option<String>,
     pub timestamp: String,
+    pub timestamp_epoch: u64,
     pub is_pending: bool,
 }
 
@@ -47,7 +51,10 @@ impl JinyDesktopApp {
         let llm = LlmClient::new();
         println!("  [app] 3. Inicializando AgenticClipboard...");
         let clipboard = AgenticClipboard::new();
-        println!("  [app] 4. Creando estructura JinyDesktopApp...");
+        println!("  [app] 4. Cargando historial de mensajes del día...");
+        let messages = load_history();
+        let next_id = messages.iter().map(|m| m.id).max().unwrap_or(0) + 1;
+        println!("  [app] 5. Historial cargado: {} mensajes previos.", messages.len());
 
         let app = Self {
             rx_chat,
@@ -55,8 +62,8 @@ impl JinyDesktopApp {
             rx_llm,
             llm,
             clipboard,
-            messages: Vec::new(),
-            next_id: 1,
+            messages,
+            next_id,
             input_text: String::new(),
             auto_copy_enabled: true,
             always_on_top: true,
@@ -64,7 +71,7 @@ impl JinyDesktopApp {
             toast: None,
             is_thinking: false,
         };
-        println!("  [app] 5. JinyDesktopApp creada con éxito!");
+        println!("  [app] 6. JinyDesktopApp creada con éxito!");
         app
     }
 
@@ -83,6 +90,11 @@ impl JinyDesktopApp {
         self.next_id += 1;
         self.is_thinking = true;
 
+        let now_epoch = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
         self.messages.push(UiMessage {
             id,
             source: source.to_string(),
@@ -91,6 +103,7 @@ impl JinyDesktopApp {
             macro_title: None,
             macro_code: None,
             timestamp: Self::format_now(),
+            timestamp_epoch: now_epoch,
             is_pending: true,
         });
 
@@ -148,6 +161,7 @@ impl eframe::App for JinyDesktopApp {
             }
 
             self.is_thinking = self.messages.iter().any(|m| m.is_pending);
+            save_history(&self.messages);
             sync_to_companion_lua(&self.messages);
         }
 
@@ -333,7 +347,10 @@ impl eframe::App for JinyDesktopApp {
 
         // Central Chat Area
         egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+            egui::ScrollArea::vertical()
+                .auto_shrink([false, false])
+                .stick_to_bottom(true)
+                .show(ui, |ui| {
                 ui.add_space(8.0);
 
                 if self.messages.is_empty() {
@@ -494,5 +511,60 @@ fn sync_to_companion_lua(messages: &[UiMessage]) {
 
     for target in targets {
         let _ = std::fs::write(target, &lua);
+    }
+}
+
+fn resolve_history_path() -> PathBuf {
+    let candidates = [
+        PathBuf::from(r"D:\Games\Bnet\World of Warcraft\jiny\desktop\chat_history.json"),
+        PathBuf::from("desktop/chat_history.json"),
+        PathBuf::from("chat_history.json"),
+    ];
+    for p in candidates {
+        if p.exists() {
+            return p;
+        }
+    }
+    PathBuf::from(r"D:\Games\Bnet\World of Warcraft\jiny\desktop\chat_history.json")
+}
+
+fn load_history() -> Vec<UiMessage> {
+    let path = resolve_history_path();
+    if !path.exists() {
+        return Vec::new();
+    }
+
+    let raw = match std::fs::read_to_string(&path) {
+        Ok(s) => s,
+        Err(_) => return Vec::new(),
+    };
+
+    let all: Vec<UiMessage> = serde_json::from_str(&raw).unwrap_or_default();
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    // Mantener solo mensajes de las últimas 24 horas (el día actual)
+    all.into_iter()
+        .filter(|m| now.saturating_sub(m.timestamp_epoch) <= 86400)
+        .collect()
+}
+
+fn save_history(messages: &[UiMessage]) {
+    let path = resolve_history_path();
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    // Mantener solo completados de las últimas 24 horas
+    let filtered: Vec<&UiMessage> = messages
+        .iter()
+        .filter(|m| now.saturating_sub(m.timestamp_epoch) <= 86400 && !m.is_pending)
+        .collect();
+
+    if let Ok(json) = serde_json::to_string_pretty(&filtered) {
+        let _ = std::fs::write(&path, json);
     }
 }
