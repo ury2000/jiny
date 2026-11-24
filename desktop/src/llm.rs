@@ -16,6 +16,8 @@ struct GeminiPart {
 
 #[derive(Serialize)]
 struct GeminiContent {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    role: Option<String>,
     parts: Vec<GeminiPart>,
 }
 
@@ -93,7 +95,7 @@ impl LlmClient {
         !self.api_key.is_empty()
     }
 
-    pub fn ask(&self, question: &str, locale: &str) -> Result<String, String> {
+    pub fn ask(&self, question: &str, locale: &str, history: &[(String, String)]) -> Result<String, String> {
         let _q_lower = question.to_lowercase();
 
         // If no API key or asked for preview/macro offline, generate instant Classic Forever response
@@ -107,21 +109,54 @@ impl LlmClient {
         );
 
         let system_text = format!(
-            "Eres Jiny, la compañera e inteligencia artificial para World of Warcraft Classic Forever (versión 1.15.x / Classic Era). \
-            Responde en el idioma del usuario ({locale}). Sé concisa, inmersiva y útil. \
-            Cuando des coordenadas de Classic Era escríbelas siempre en formato (XX.X, YY.Y). \
-            Si el usuario te pide una macro, envuélvela SIEMPRE en etiquetas [JINY_MACRO name=\"Título de la macro\"]...[/JINY_MACRO] con comandos de WoW Classic válidos."
+            "Eres Jiny, la compañera e inteligencia artificial para World of Warcraft Classic Forever \
+            (versión 1.15.x / Classic Era / Vanilla, nivel máximo 60, Kalimdor y Reinos del Este exclusivamente). \
+            Responde en el idioma del usuario ({locale}). Sé concisa, inmersiva, precisa y útil (2 a 5 oraciones claras).\n\n\
+            REGLAS ESTRICTAS DE CONOCIMIENTO (ANTI-ALUCINACIÓN):\n\
+            1. ÁMBITO Y TEMPORALIDAD: Tu conocimiento está anclado en WoW Classic Era 1.15.x (Vanilla puro). \
+            NUNCA asumas mecánicas modernas ni inventes datos. El nivel máximo es 60, no hay monturas voladoras ni talentos de expansiones posteriores.\n\
+            2. CAZADORES Y MASCOTAS EN CLASSIC ERA: En Vanilla/Classic Era 1.15.x NO existen especializaciones de mascotas (Ferocidad, Tenacidad, Astucia) \
+            ni árboles de talentos para mascotas. Las mascotas aprenden habilidades básicas (Mordisco, Zarpazo, Bramido, etc.) adiestrando bestias salvajes en el mundo.\n\
+            3. DISTINCIÓN DE EXPANSIONES Y SEASON OF DISCOVERY:\n\
+               - Si el usuario te pregunta por habilidades añadidas en expansiones posteriores como Wrath of the Lich King (ejemplo: 'Savage Rend' / 'Desgarro Salvaje' en raptors, añadida en WotLK) \
+                 o por contenido/runas de Season of Discovery (como el 'Cozy Sleeping Bag' / 'Saco de dormir acogedor' o tiendas de acampar que otorgan bonificación de descanso acumulable):\n\
+                 ACLARÁSELO CON TOTAL TRANSPARENCIA. Explica de dónde proviene exactamente la habilidad u objeto (ej: 'Esa habilidad/objeto proviene de WotLK/Season of Discovery...'), \
+                 detalla su funcionamiento real y aclara cuál es la realidad en Classic Era 1.15.x pura.\n\
+               - NUNCA inventes PNJs ficticios, coordenadas inventadas (como 'Young Stranglethorn Raptors en nivel 10') ni le atribuyas habilidades de mascotas a otras clases (como decir que Savage Rend es de Guerrero).\n\
+            4. PRECISIÓN Y COORDENADAS: Escribe las coordenadas siempre en formato (XX.X, YY.Y). Si no estás 100% segura de una coordenada o dato, admítelo claramente en lugar de adivinar.\n\
+            5. MACROS: Si el usuario te pide una macro, envuélvela SIEMPRE en etiquetas [JINY_MACRO name=\"Título de la macro\"]...[/JINY_MACRO] con comandos de WoW Classic válidos (#showtooltip, /cast, etc.)."
         );
+
+        let mut contents = Vec::new();
+
+        // Include recent multi-turn conversation history
+        for (hist_q, hist_a) in history {
+            let hq = hist_q.trim();
+            let ha = hist_a.trim();
+            if !hq.is_empty() && !ha.is_empty() {
+                contents.push(GeminiContent {
+                    role: Some("user".to_string()),
+                    parts: vec![GeminiPart { text: hq.to_string() }],
+                });
+                contents.push(GeminiContent {
+                    role: Some("model".to_string()),
+                    parts: vec![GeminiPart { text: ha.to_string() }],
+                });
+            }
+        }
+
+        // Current user turn
+        contents.push(GeminiContent {
+            role: Some("user".to_string()),
+            parts: vec![GeminiPart { text: question.to_string() }],
+        });
 
         let req_body = GeminiRequest {
             system_instruction: GeminiContent {
+                role: None,
                 parts: vec![GeminiPart { text: system_text }],
             },
-            contents: vec![GeminiContent {
-                parts: vec![GeminiPart {
-                    text: question.to_string(),
-                }],
-            }],
+            contents,
         };
 
         let client = reqwest::blocking::Client::builder()
@@ -193,5 +228,32 @@ impl LlmClient {
         format!(
             "Jiny Classic Forever ({locale}): He recibido tu consulta: «{question}». Todo en orden en Azeroth. Prueba a pedirme una macro escribiendo «macro de cazador» o una ubicación como «dónde está Mankrik»."
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_offline_preview_generation() {
+        let client = LlmClient {
+            api_key: String::new(),
+            model: "gemini-2.5-flash".to_string(),
+        };
+        let ans = client.ask("donde esta mankrik?", "esES", &[]).unwrap();
+        assert!(ans.contains("El Cruce"));
+        assert!(ans.contains("52.1, 31.6"));
+    }
+
+    #[test]
+    fn test_offline_macro_generation() {
+        let client = LlmClient {
+            api_key: String::new(),
+            model: "gemini-2.5-flash".to_string(),
+        };
+        let ans = client.ask("macro cazador", "esES", &[]).unwrap();
+        assert!(ans.contains("[JINY_MACRO"));
+        assert!(ans.contains("Aspecto"));
     }
 }

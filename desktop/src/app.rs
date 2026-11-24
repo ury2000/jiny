@@ -97,6 +97,28 @@ impl JinyDesktopApp {
 
         crate::logger::info(format!("[Consulta #{}] Fuente: {} | Pregunta: \"{}\"", id, source, q));
 
+        let history: Vec<(String, String)> = self
+            .messages
+            .iter()
+            .filter_map(|m| {
+                if !m.is_pending {
+                    m.answer.as_ref().map(|ans| (m.question.clone(), ans.clone()))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        // Conservar los últimos 6 turnos conversacionales completados para contexto continuo
+        let recent_history: Vec<(String, String)> = history
+            .into_iter()
+            .rev()
+            .take(6)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect();
+
         self.messages.push(UiMessage {
             id,
             source: source.to_string(),
@@ -118,7 +140,7 @@ impl JinyDesktopApp {
         // Non-blocking async worker thread for LLM / network query
         std::thread::spawn(move || {
             let start = std::time::Instant::now();
-            let result = llm.ask(&q_clone, &loc);
+            let result = llm.ask(&q_clone, &loc, &recent_history);
             crate::logger::info(format!("[Gemini #{}] Finalizado en {}ms (éxito: {})", id, start.elapsed().as_millis(), result.is_ok()));
             let _ = tx.send(LlmTaskResponse {
                 message_id: id,
