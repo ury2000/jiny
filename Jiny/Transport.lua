@@ -17,9 +17,10 @@ local function GetActiveLocale()
 end
 
 local function GetPlayerWhisperTarget()
-    if type(GetUnitName) == "function" then
-        local name = GetUnitName("player", true)
-        if name and name ~= "" then
+    -- En Classic Era nos susurramos siempre al nombre directo del jugador (sin espacios de reino)
+    if type(UnitName) == "function" then
+        local name = UnitName("player")
+        if name and name ~= "" and name ~= UNKNOWNOBJECT then
             return name
         end
     end
@@ -32,18 +33,14 @@ local function GetPlayerWhisperTarget()
             return name
         end
     end
-    if type(UnitName) == "function" then
-        local name = UnitName("player")
-        if name and name ~= "" then
-            return name
-        end
-    end
     return nil
 end
 
 local function EnableChatLogging()
     if type(LoggingChat) == "function" then
-        pcall(LoggingChat, true)
+        if not LoggingChat() then
+            LoggingChat(true)
+        end
     end
 end
 
