@@ -6,6 +6,7 @@ desktop/chat_history.json
 chat_history.json
 desktop/jiny_desktop.log
 jiny_desktop.log
+Jiny/CompanionData.lua
 .env
 
 # Python cache y entornos virtuales
