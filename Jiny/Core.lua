@@ -103,11 +103,35 @@ function ns.IngestCompanionReplies()
     if type(ns.db.processedIds) ~= "table" then
         ns.db.processedIds = {}
     end
+
+    -- Limpiar consultas de outbox que hayan quedado huerfanas (mas de 5 min)
+    if type(ns.db.outbox) == "table" then
+        local now = time()
+        for i = #ns.db.outbox, 1, -1 do
+            local outItem = ns.db.outbox[i]
+            if type(outItem) == "table" and outItem.t and (now - outItem.t) > 300 then
+                table.remove(ns.db.outbox, i)
+            end
+        end
+    end
+
+    local importedAny = false
     for _, item in ipairs(ns.CompanionData.replies) do
         if type(item) == "table" and item.id and item.a and not ns.db.processedIds[item.id] then
+            if item.q and tostring(item.q) ~= "" then
+                ns.AddHistory("user", tostring(item.q))
+            end
             ns.AddHistory("jiny", tostring(item.a))
             ns.db.processedIds[item.id] = true
             RemoveOutboxId(item.id)
+            importedAny = true
+        end
+    end
+
+    if importedAny and ns.UI and type(ns.UI.RenderHistory) == "function" and ns.UI.frame then
+        ns.UI:RenderHistory()
+        if type(ns.UI.UpdateStatus) == "function" then
+            ns.UI:UpdateStatus()
         end
     end
 end

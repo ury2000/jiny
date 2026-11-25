@@ -1,22 +1,22 @@
 local ADDON, ns = ...
 
 ns.CompanionData = {
-    updatedAt = 1795340125,
+    updatedAt = 1795634347,
     companionStatus = "online",
     replies = {
         {
-            id = "1795339810-8221",
+            id = "desk-1795634347-2",
             lang = "esES",
-            q = "¿Dónde está Mankrik?",
-            a = "Mankrik se encuentra en Los Baldíos (The Barrens), justo en el campamento de El Cruce (The Crossroads), en las coordenadas (52.1, 31.6). Es un PNJ de nivel 15 que te otorgará la clásica misión «Perdidos en el combate» (nivel recomendado 20, mínimo 14). Si lo que necesitas es encontrar a su esposa para completar su misión, su cuerpo yace más al sur, cerca del camino en (49.3, 50.4).",
-            t = 1795340117,
+            q = "Entendido, responde, estatico, no importa, quiero solo saber y ver si se visualiza en pantalladel addon",
+            a = "⚡ **[RF1 • Enlace Real-Time Validado]**\n\nMensaje detectado desde WoW en **tiempo real (< 50ms)**.\n\n• **Pregunta:** \"Entendido, responde, estatico, no importa, quiero solo saber y ver si se visualiza en pantalladel addon\"\n• **Fuente:** Desktop\n• **ID Consulta:** `#2`\n• **Idioma:** `esES`\n• **Estado:** Enlace de transporte 100% operativo.\n*(Nota: Llamada a Gemini en pausa según RF1 para validar transporte lineal).* ",
+            t = 1795634347,
         },
         {
-            id = "1795339962-4513",
+            id = "desk-1795634347-1",
             lang = "esES",
-            q = "¿Dónde está Mankrik?",
-            a = "Mankrik se encuentra en **Los Baldíos** (*The Barrens*), en el poblado de **El Cruce** (*The Crossroads*), exactamente en las coordenadas **(52.1, 31.6)**. \n\nEs un orco de nivel 15 que te entrega la misión «Perdidos en el combate» (nivel 20, disponible desde nivel 14). Por si acaso tu verdadera duda es dónde hallar a su difunta esposa para completar el encargo, su cuerpo descansa más al sur, en las coordenadas **(49.3, 50.4)**.",
-            t = 1795340125,
+            q = "dw",
+            a = "⚡ **[RF1 • Enlace Real-Time Validado]**\n\nMensaje detectado desde WoW en **tiempo real (< 50ms)**.\n\n• **Pregunta:** \"dw\"\n• **Fuente:** Desktop\n• **ID Consulta:** `#1`\n• **Idioma:** `esES`\n• **Estado:** Enlace de transporte 100% operativo.\n*(Nota: Llamada a Gemini en pausa según RF1 para validar transporte lineal).* ",
+            t = 1795634347,
         },
     },
 }

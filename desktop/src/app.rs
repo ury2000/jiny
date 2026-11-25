@@ -586,8 +586,9 @@ fn sync_to_companion_lua(messages: &[UiMessage]) {
         if let Some(ref ans) = msg.answer {
             let clean_q = msg.question.replace('\\', "\\\\").replace('"', "\\\"").replace('\r', "").replace('\n', "\\n");
             let clean_a = ans.replace('\\', "\\\\").replace('"', "\\\"").replace('\r', "").replace('\n', "\\n");
+            let unique_id = format!("desk-{}-{}", msg.timestamp_epoch, msg.id);
             lua.push_str("        {\n");
-            lua.push_str(&format!("            id = \"{}\",\n", msg.id));
+            lua.push_str(&format!("            id = \"{}\",\n", unique_id));
             lua.push_str("            lang = \"esES\",\n");
             lua.push_str(&format!("            q = \"{}\",\n", clean_q));
             lua.push_str(&format!("            a = \"{}\",\n", clean_a));
