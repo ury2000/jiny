@@ -28,8 +28,8 @@ impl ChatLogWatcher {
 
         if start_at_end && path.exists() {
             if let Ok(meta) = std::fs::metadata(&path) {
-                // Look back up to 64 KB so recent queries from the active game session are never missed
-                initial_offset = meta.len().saturating_sub(65536);
+                // Start directly at current EOF so only fresh queries are captured
+                initial_offset = meta.len();
             }
         }
 

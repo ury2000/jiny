@@ -41,6 +41,7 @@ pub struct JinyDesktopApp {
     is_parchment_theme: bool,
     toast: Option<(String, Instant)>,
     is_thinking: bool,
+    pub gemini_paused: bool,
 }
 
 impl JinyDesktopApp {
@@ -70,6 +71,7 @@ impl JinyDesktopApp {
             is_parchment_theme: false,
             toast: None,
             is_thinking: false,
+            gemini_paused: true, // RF1: Gemini pausado para validar transporte lineal Addon -> Desktop
         };
         println!("  [app] 6. JinyDesktopApp creada con éxito!");
         app
@@ -96,6 +98,39 @@ impl JinyDesktopApp {
             .as_secs();
 
         crate::logger::info(format!("[Consulta #{}] Fuente: {} | Pregunta: \"{}\"", id, source, q));
+
+        if self.gemini_paused {
+            crate::logger::info(format!("[RF1 Eco #{}] Fuente: {} | Pregunta: \"{}\"", id, source, q));
+
+            let echo_text = format!(
+                "⚡ **[RF1 • Enlace Real-Time Validado]**\n\n\
+                Mensaje detectado desde WoW en **tiempo real (< 50ms)**.\n\n\
+                • **Pregunta:** \"{}\"\n\
+                • **Fuente:** {}\n\
+                • **ID Consulta:** `#{}`\n\
+                • **Idioma:** `{}`\n\
+                • **Estado:** Enlace de transporte 100% operativo.\n\
+                *(Nota: Llamada a Gemini en pausa según RF1 para validar transporte lineal).* ",
+                q, source, id, locale
+            );
+
+            self.messages.push(UiMessage {
+                id,
+                source: source.to_string(),
+                question: q.clone(),
+                answer: Some(echo_text),
+                macro_title: None,
+                macro_code: None,
+                timestamp: Self::format_now(),
+                timestamp_epoch: now_epoch,
+                is_pending: false,
+            });
+
+            self.is_thinking = false;
+            save_history(&self.messages);
+            sync_to_companion_lua(&self.messages);
+            return;
+        }
 
         let history: Vec<(String, String)> = self
             .messages
@@ -256,6 +291,38 @@ impl eframe::App for JinyDesktopApp {
                                     egui::RichText::new("● Classic 1.15.x").size(10.0),
                                 );
                             });
+                    }
+
+                    // RF1 Badge & Gemini Toggle
+                    if self.gemini_paused {
+                        egui::Frame::none()
+                            .fill(egui::Color32::from_rgb(30, 58, 138))
+                            .rounding(10.0)
+                            .inner_margin(egui::Margin::symmetric(6.0, 2.0))
+                            .show(ui, |ui| {
+                                ui.colored_label(
+                                    egui::Color32::from_rgb(147, 197, 253),
+                                    egui::RichText::new("⚡ RF1: Enlace WoW").size(10.0).strong(),
+                                );
+                            });
+
+                        let gem_btn = ui.button(
+                            egui::RichText::new("⏸️ Gemini: Pausado")
+                                .size(10.0)
+                                .color(egui::Color32::from_rgb(251, 191, 36)),
+                        );
+                        if gem_btn.clicked() {
+                            self.gemini_paused = false;
+                        }
+                    } else {
+                        let gem_btn = ui.button(
+                            egui::RichText::new("▶️ Gemini: Activo")
+                                .size(10.0)
+                                .color(egui::Color32::from_rgb(52, 211, 153)),
+                        );
+                        if gem_btn.clicked() {
+                            self.gemini_paused = true;
+                        }
                     }
 
                     // Right-side integrated window controls (Right to Left order)

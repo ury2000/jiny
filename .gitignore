@@ -25,6 +25,9 @@ desktop/target/
 .antigravity/
 .agent/
 
+# Binarios ejecutables compilados
+*.exe
+
 # Base de datos SQLite RAG local (reconstruible desde classic_era_seed.json)
 companion/data/*.db
 companion/data/*.db-shm

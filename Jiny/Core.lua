@@ -294,6 +294,7 @@ SlashCmdList["JINY"] = function(msg)
             ns.UI:AddMessage("system", ns.L.HISTORY_CLEARED)
         end
     else
+        PrintChat("⚡ Transmitiendo a Jiny Desktop en tiempo real...")
         ns.UI:Show()
         ns.UI:Ask(trimmed)
     end

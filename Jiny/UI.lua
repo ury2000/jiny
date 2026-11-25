@@ -1311,7 +1311,7 @@ function UI:Ask(text)
             self:UpdateStatus()
 
             if type(meta) == "table" and meta.queued then
-                self:AddMessage("system", ns.L.SENT_TO_COMPANION)
+                self:AddMessage("system", "⚡ Transmitido a Jiny Desktop en tiempo real. Mira la ventana lateral de Jiny.")
             elseif reply ~= nil then
                 local replyText = tostring(reply)
                 self:AddMessage("jiny", replyText)
